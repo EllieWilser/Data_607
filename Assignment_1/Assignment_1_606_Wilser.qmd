@@ -1,0 +1,22 @@
+---
+title: "Assignment 1"
+author: "Ellie Wilser"
+format: html
+execute:
+  echo: true
+---
+
+## Approach
+
+For Assignment 1, I plan to use a data source that is the CO2 emissions by country from 1750 to current. More information about the data source can be found in the *Source* section. The data source contains multiple columns with data ranging from country demographic data to energy consumption. I plan to explore the columns relating to temperature change. I will remove the other columns, modify columns when necessary, and create a few graphs to explore the data. A data challenge I might run into is when creating the graphs. I plan to familiar my self with the ggplot2 library using the R for Data Science textbook.
+
+## Source
+
+The source for the assignment is the article *CO~2~ Emissions: How much CO~2~ does the world emit? Which countries emit the most.* Hannah Ritchie and Max Roser evaluate which countries are the largest producers of CO2 by using varies data visualizations. The numerous visuals look at raw emissions by year, normalized emissions using population totals, and cumulative sums going back to the 1800s. The authors share the data for others to analyze.
+
+The following link connects to the Github Repo where the data is being stored: <https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_1/owid-co2-data.csv>
+
+## Citation
+
+**Ritchie, Hannah, and Max Roser. (2020).** *CO₂ emissions*. Our World in Data.\
+<https://archive.ourworldindata.org/20260810-163104/co2-emissions.html>
