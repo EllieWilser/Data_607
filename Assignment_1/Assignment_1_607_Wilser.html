@@ -2,14 +2,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.8.25">
+<meta name="generator" content="quarto-1.9.38">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Ellie Wilser">
 
-<title>Assignment 1</title>
+<title>Data 607: Assignment 1</title>
 <style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
 div.columns{display: flex; gap: min(4vw, 1.5em);}
@@ -24,18 +27,17 @@ ul.task-list li input[type="checkbox"] {
 </style>
 
 
-<script src="Assignment_1_606_Wilser_files/libs/clipboard/clipboard.min.js"></script>
-<script src="Assignment_1_606_Wilser_files/libs/quarto-html/quarto.js" type="module"></script>
-<script src="Assignment_1_606_Wilser_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="Assignment_1_606_Wilser_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
-<script src="Assignment_1_606_Wilser_files/libs/quarto-html/popper.min.js"></script>
-<script src="Assignment_1_606_Wilser_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="Assignment_1_606_Wilser_files/libs/quarto-html/anchor.min.js"></script>
-<link href="Assignment_1_606_Wilser_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="Assignment_1_606_Wilser_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="Assignment_1_606_Wilser_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="Assignment_1_606_Wilser_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="Assignment_1_606_Wilser_files/libs/bootstrap/bootstrap-d6a003b94517c951b2d65075d42fb01b.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="Assignment_1_607_Wilser_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Assignment_1_607_Wilser_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="Assignment_1_607_Wilser_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="Assignment_1_607_Wilser_files/libs/quarto-html/popper.min.js"></script>
+<script src="Assignment_1_607_Wilser_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Assignment_1_607_Wilser_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Assignment_1_607_Wilser_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Assignment_1_607_Wilser_files/libs/quarto-html/quarto-syntax-highlighting-15634bcf2e68342d4ad2dfa704d543f6.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Assignment_1_607_Wilser_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Assignment_1_607_Wilser_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Assignment_1_607_Wilser_files/libs/bootstrap/bootstrap-138a6193a3bd40baf1e627da441a4734.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -48,7 +50,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Assignment 1</h1>
+<h1 class="title">Data 607: Assignment 1</h1>
 </div>
 
 
@@ -73,11 +75,11 @@ ul.task-list li input[type="checkbox"] {
 
 <section id="approach" class="level2">
 <h2 class="anchored" data-anchor-id="approach">Approach</h2>
-<p>For Assignment 1, I plan to use a data source that is the CO2 emissions by country from 1750 to current. More information about the data source can be found in the <em>Source</em> section. The data source contains multiple columns with data ranging from country demographic data to energy consumption. I plan to explore the columns relating to temperature change. I will remove the other columns, modify columns when necessary, and create a few graphs to explore the data. A data challenge I might run into is when creating the graphs. I plan to familiar my self with the ggplot2 library using the R for Data Science textbook.</p>
+<p>For Assignment 1, I plan to use a data source that is the CO<sub>2</sub> emissions by country from 1750 to current. More information about the data source can be found in the <em>Source</em> section. The data source contains multiple columns with data ranging from country demographic data to energy consumption. I plan to explore the columns relating to temperature change. I will remove the other columns, modify columns when necessary, and create a few graphs to explore the data. A data challenge I might run into is when creating the graphs. I plan to familiar my self with the ggplot2 library using the R for Data Science textbook.</p>
 </section>
 <section id="source" class="level2">
 <h2 class="anchored" data-anchor-id="source">Source</h2>
-<p>The source for the assignment is the article <em>CO<sub>2</sub> Emissions: How much CO<sub>2</sub> does the world emit? Which countries emit the most.</em> Hannah Ritchie and Max Roser evaluate which countries are the largest producers of CO2 by using varies data visualizations. The numerous visuals look at raw emissions by year, normalized emissions using population totals, and cumulative sums going back to the 1800s. The authors share the data for others to analyze.</p>
+<p>The source for the assignment is the article <em>CO<sub>2</sub> Emissions: How much CO<sub>2</sub> does the world emit? Which countries emit the most.</em> Hannah Ritchie and Max Roser evaluate which countries are the largest producers of CO2 by using various data visualizations. The numerous visuals look at raw emissions by year, normalized emissions using population totals, and cumulative sums going back to the 1800s. The authors share the data for others to analyze.</p>
 <p>The following link connects to the Github Repo where the data is being stored: <a href="https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_1/owid-co2-data.csv" class="uri">https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_1/owid-co2-data.csv</a></p>
 </section>
 <section id="citation" class="level2">
