@@ -16,10 +16,10 @@ The source for the assignment is the article *CO~2~ Emissions: How much CO~2~ do
 
 The following link connects to the Github Repo where the data is being stored: <https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_1/owid-co2-data.csv>
 
-## Citation
 
-**Ritchie, Hannah, and Max Roser. (2020).** *CO₂ emissions*. Our World in Data.\
-<https://archive.ourworldindata.org/20260810-163104/co2-emissions.html>
+
+
+
 
 ## Code
 
@@ -27,6 +27,7 @@ The following link connects to the Github Repo where the data is being stored: <
 ``` {r}
 library(readr)
 library(dplyr)
+library(tidyverse)
 
 ```
 
@@ -43,23 +44,60 @@ co2_emissions <- read_csv(
 )
 ```
 
-### Rename and Remove Columns
+### Data Cleaning
+
+In order to analyze the data file, a few cleaning tasks had to be done. First, I used dplyr to select the columns that I needed, then I removed rows which had NA values in them. This worked with the structure of the data file, and no needed data was lost. Since the temperature change from ghg column was cumulative, I removed all years besides 2022 and then removed the "World" entry to avoid double counting.
 
 ```{r}
+co2_emissions <- select(co2_emissions, "country", "year","population","gdp","temperature_change_from_ghg")
+co2_emissions_clean <- co2_emissions[rowSums(is.na(co2_emissions)) == 0,]
+co2_emissions_clean <- filter(co2_emissions_clean, year == 2022)
+co2_emissions_clean$temperature_change_from_ghg = as.numeric(co2_emissions_clean$temperature_change_from_ghg)
+co2_emissions_clean <- filter(co2_emissions_clean, country != "World")
 
-
+co2_emissions_clean
 ```
 
 ### Basic Exploratory Data Analysis
 
+To better understand the data, I calculated the total, mean and median of the temperature change from ghg column.
+
 ```{r}
 
-
+sum(co2_emissions_clean$temperature_change_from_ghg)
+mean(co2_emissions_clean$temperature_change_from_ghg,na.rm = FALSE)
+median(co2_emissions_clean$temperature_change_from_ghg,na.rm = FALSE)
 ```
 
 ### Graphs
 
+Using ggplot, I created a pie chart of the temperature change from ghg by country. As a reference, I used r graph gallery which was a great resource for learning how to create a pie chart in ggplot.
+
+The link to r graph gallery: <https://r-graph-gallery.com/piechart-ggplot2.html>
+
 ```{r}
+plotting_data <- co2_emissions_clean %>%
+  mutate(rank = rank(-temperature_change_from_ghg),
+         country = ifelse(rank <= 10,country,'Other')) %>%
+  group_by(country) %>%
+  summarise(temperature_change_from_ghg = sum(temperature_change_from_ghg))
+
+ggplot(plotting_data, aes(x="", y=temperature_change_from_ghg, fill=country)) +
+  geom_bar(stat="identity",width=1) +
+  coord_polar("y", start=0) +
+  theme_void() +
+  geom_text(aes(x =1.6, label = paste0(temperature_change_from_ghg,"°C")), position = position_stack(vjust = .5))+
+  labs(
+    title = "Temperature Change from GHG by Country"
+  )
 
 
 ```
+## Citation
+
+**Holtz, Yan. (2025)** *ggplot2 Piechart*. The R Graph Gallery. \
+<https://r-graph-gallery.com/piechart-ggplot2.html>
+
+**Ritchie, Hannah, and Max Roser. (2020).** *CO₂ emissions*. Our World in Data.\
+<https://archive.ourworldindata.org/20260810-163104/co2-emissions.html>
+
