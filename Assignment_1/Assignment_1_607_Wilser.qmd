@@ -23,6 +23,26 @@ The following link connects to the Github Repo where the data is being stored: <
 
 ## Code
 
+### Library
+``` {r}
+library(readr)
+library(dplyr)
+
+```
+
+### Load Data from Github
+
+``` {r}
+
+url <- "https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_1/owid-co2-data.csv"
+
+co2_emissions <- read_csv(
+  file = url,
+  show_col_types = FALSE,
+  progress = FALSE
+)
+```
+
 ### Rename and Remove Columns
 
 ```{r}
