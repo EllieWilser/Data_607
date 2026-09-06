@@ -90,6 +90,10 @@ ggplot(plotting_data, aes(x="", y=temperature_change_from_ghg, fill=country)) +
 
 ```
 
+## Conclusion
+
+The 10 highest emitting countries in the world make up over 50% of temperature change caused by greenhouse gases, with the US being the largest contributor. I was surprised that France did not make the top 10 because of their high GDP compared to countries like Brazil, Russia, and Indonesia. However, France's commitment to green energy in the past 10 years could be the driver of this result. I recommend that countries with green power commitments get investigated using this dataset to see if their efforts are working.
+
 ## Citation
 
 **Holtz, Yan. (2025)** *ggplot2 Piechart*. The R Graph Gallery.\
