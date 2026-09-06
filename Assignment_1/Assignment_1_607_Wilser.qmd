@@ -8,7 +8,7 @@ execute:
 
 ## Approach
 
-For Assignment 1, I plan to use a data source that is the CO~2~ emissions by country from 1750 to current. More information about the data source can be found in the *Source* section. The data source contains multiple columns with data ranging from country demographic data to energy consumption. I plan to explore the columns relating to temperature change. I will remove the other columns, modify columns when necessary, and create a few graphs to explore the data. A data challenge I might run into is when creating the graphs. I plan to familiar my self with the ggplot2 library using the R for Data Science textbook.
+For Assignment 1, I plan to use a data source that is the CO~2~ emissions by country from 1750 to current. More information about the data source can be found in the *Introduction* section. The data source contains multiple columns with data ranging from country demographic data to energy consumption. I plan to explore the columns relating to temperature change. I will remove the other columns, modify columns when necessary, and create a graph to explore the data. A data challenge I might run into is when creating the graph. I plan to familiar my self with the ggplot2 library using the R for Data Science textbook.
 
 ## Introduction
 
@@ -16,15 +16,11 @@ The source for the assignment is the article *CO~2~ Emissions: How much CO~2~ do
 
 The following link connects to the Github Repo where the data is being stored: <https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_1/owid-co2-data.csv>
 
-
-
-
-
-
 ## Code
 
 ### Library
-``` {r}
+
+```{r}
 library(readr)
 library(dplyr)
 library(tidyverse)
@@ -33,7 +29,7 @@ library(tidyverse)
 
 ### Load Data from Github
 
-``` {r}
+```{r}
 
 url <- "https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_1/owid-co2-data.csv"
 
@@ -93,11 +89,11 @@ ggplot(plotting_data, aes(x="", y=temperature_change_from_ghg, fill=country)) +
 
 
 ```
+
 ## Citation
 
-**Holtz, Yan. (2025)** *ggplot2 Piechart*. The R Graph Gallery. \
+**Holtz, Yan. (2025)** *ggplot2 Piechart*. The R Graph Gallery.\
 <https://r-graph-gallery.com/piechart-ggplot2.html>
 
 **Ritchie, Hannah, and Max Roser. (2020).** *CO₂ emissions*. Our World in Data.\
 <https://archive.ourworldindata.org/20260810-163104/co2-emissions.html>
-
