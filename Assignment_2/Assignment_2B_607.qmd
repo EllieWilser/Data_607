@@ -5,4 +5,65 @@ format: html
 editor: visual
 ---
 
-## 
+## Approach
+
+For this assignment, I plan to go through the planned out code chucks belong which matches the assignment tasks. Before starting to code, I plan to read through the provided PDF and get a refresh on binary classification. I have worked with these model's before, but the PDF will be useful. I don't think I will have too many difficulties with this assignment, but I want to challenge myself to use Git in terminal and make a graph using ggplot 2.
+
+## Code
+
+### Loading Data and Libraries
+
+```{r}
+library(readr)
+library(dplyr)
+library(tidyverse)
+```
+
+```{r}
+url <- "https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_2/penguin_predictions.csv"
+
+penguin_pred <- read_csv(
+  file = url,
+  show_col_types = FALSE,
+  progress = FALSE
+)
+  
+
+
+```
+
+### Data Exploration
+
+```{r}
+
+```
+
+### Graph
+
+```{r}
+
+```
+
+### Null Error Rate
+
+```{r}
+
+```
+
+### Confusion Matrices at Multiple Thresholds
+
+```{r}
+
+```
+
+### Performance Metrics
+
+```{r}
+
+```
+
+### **Threshold Use Cases**
+
+```{r}
+
+```
