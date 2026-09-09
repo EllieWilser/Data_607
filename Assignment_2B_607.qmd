@@ -1,0 +1,8 @@
+---
+title: "Data 607: Assignment 2B"
+author: "Ellie Wilser"
+format: html
+editor: visual
+---
+
+## 
