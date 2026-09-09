@@ -11,6 +11,6 @@ For this assignment, I plan to create a survey with Google Forms that asks peopl
 
 I plan to load the data from the survey into SQL and then connect the SQL server to my R environment to query the database directly. I anticipate a slight challenge getting this connection set up, so I might have to export the data from the database and load it into R.
 
-After the data is in my R environment, I will compute average ratings and count ratings per user and movie.
+After the data is in my R environment, I will compute average ratings and count ratings per user and movie. Test
 
 ## Introduction
