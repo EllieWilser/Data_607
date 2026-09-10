@@ -1,7 +1,18 @@
 ---
 title: "Data 607: Assignment 2B"
 author: "Ellie Wilser"
-format: html
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    code-fold: true
+    code-summary: "Show code"
+    code-tools: true
+    df-print: paged
+    smooth-scroll: true
+    embed-resources: true
 editor: visual
 ---
 
