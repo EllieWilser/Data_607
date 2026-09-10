@@ -7,7 +7,7 @@ editor: visual
 
 ## Approach
 
-For this assignment, I plan to create a survey with Google Forms that asks people to survey 6 different movies. The choices will be 1 through 5 and another option with "Did not see". When handling "Did not see", I will store that entry as an NA or NULL in my data table. When performing analysis, I will leave out that rating so not to have an effect. Test
+For this assignment, I plan to create a survey with Google Forms that asks people to rate 6 different movies. The choices will be 1 through 5 and another option with "Did not see". When handling "Did not see", I will store that entry as an NA or NULL in my data table. When performing analysis, I will leave out that rating so not to have an effect.
 
 I plan to load the data from the survey into SQL and then connect the SQL server to my R environment to query the database directly. I anticipate a slight challenge getting this connection set up, so I might have to export the data from the database and load it into R.
 

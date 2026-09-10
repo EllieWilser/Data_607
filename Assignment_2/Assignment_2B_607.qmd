@@ -7,7 +7,7 @@ editor: visual
 
 ## Approach
 
-For this assignment, I plan to go through the planned out code chucks belong which matches the assignment tasks. Before starting to code, I plan to read through the provided PDF and get a refresh on binary classification. I have worked with these model's before, but the PDF will be useful. I don't think I will have too many difficulties with this assignment, but I want to challenge myself to use Git in terminal and make a graph using ggplot 2.
+For this assignment, I plan to go through the planned out code chucks below which matches the assignment tasks. Before starting to code, I plan to read through the provided PDF and get a refresh on binary classification. I have worked with these model's before, but the PDF will be useful. I don't think I will have too many difficulties with this assignment, but I want to challenge myself to use Git in terminal and make a graph using ggplot 2.
 
 ## Code
 
@@ -28,8 +28,6 @@ penguin_pred <- read_csv(
   progress = FALSE
 )
   
-
-
 ```
 
 ### Data Exploration
