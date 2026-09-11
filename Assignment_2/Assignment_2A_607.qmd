@@ -24,4 +24,64 @@ I plan to load the data from the survey into SQL and then connect the SQL server
 
 After the data is in my R environment, I will compute average ratings and count ratings per user and movie.
 
-## Introduction
+## Code
+
+```{r Libraries}
+library(DBI)
+library(RPostgres)
+library(tidyverse)
+library(readr)
+library(dplyr)
+library(tidyverse)
+
+```
+
+```{r Connecting To DB}
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname   = "Assignment_2",
+  host     = "localhost",          # Use IP or server address if remote
+  port     = 5432,                 # 5432 is the default PostgreSQL port
+  user     = "postgres"
+)
+```
+
+```{r Loading Data and Transforming}
+ratings <- dbReadTable(con, "ratings")
+ratings_tidy <- ratings %>%
+  pivot_longer(
+    cols = ends_with("_rating"),
+    names_to = "movie",
+    values_to = "rating",
+    values_drop_na = FALSE
+  ) %>%
+  mutate(movie = gsub("_rating$", "", movie))
+
+ratings_tidy
+```
+
+```{r User and Move Summary}
+
+user_summary <- ratings_tidy %>%
+  filter(!is.na(rating)) %>%
+  group_by(friend_id, friend_name) %>%
+  summarise(
+    total_ratings = n(),
+    avg_rating    = mean(rating),
+    .groups       = "drop"
+  )
+
+movie_summary <- ratings_tidy %>%
+  filter(!is.na(rating)) %>%
+  group_by(movie) %>%
+  summarise(
+    total_ratings = n(),
+    avg_rating    = mean(rating),
+    .groups       = "drop"
+  )
+
+user_summary
+
+movie_summary
+
+```
