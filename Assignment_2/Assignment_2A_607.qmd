@@ -8,7 +8,6 @@ format:
     toc: true
     toc-location: left
     toc-depth: 3
-    code-fold: true
     code-summary: "Show code"
     code-tools: true
     df-print: paged
@@ -36,6 +35,10 @@ library(tidyverse)
 
 ```
 
+### Connecting to Postgres
+
+In my approach section, I was wary if I would be able to connect to PostgreSQL in my R environment. After researching, I was able to successfully connect RStudio to my database.
+
 ```{r Connecting To DB}
 con <- dbConnect(
   RPostgres::Postgres(),
@@ -46,8 +49,14 @@ con <- dbConnect(
 )
 ```
 
+### Loading and Transforming to Tidy Formatting
+
+When I ingested my data into PostgreSQL, I formatted in the way of how the responses came in. Each row represented a survey, but I switched to long form in order for the data to fit Tidy formatting. Now each row represents a single rating. See below the table before and after cleaning:
+
 ```{r Loading Data and Transforming}
+
 ratings <- dbReadTable(con, "ratings")
+ratings
 ratings_tidy <- ratings %>%
   pivot_longer(
     cols = ends_with("_rating"),
@@ -59,6 +68,10 @@ ratings_tidy <- ratings %>%
 
 ratings_tidy
 ```
+
+### Summarizing Data
+
+When summarizing the data I filtered out the NA values in order to not cause an error. The user_summary table has total number of ratings and average rating by user, and movie summary has the same but for the movies. I included the .groups = "drop" to avoid a warning message and not cause future errors when interacting with the data frame.
 
 ```{r User and Move Summary}
 
