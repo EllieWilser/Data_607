@@ -7,7 +7,6 @@ format:
     toc: true
     toc-location: left
     toc-depth: 3
-    code-fold: true
     code-summary: "Show code"
     code-tools: true
     df-print: paged
@@ -38,30 +37,102 @@ penguin_pred <- read_csv(
   show_col_types = FALSE,
   progress = FALSE
 )
-  
+
+
+penguin_pred
 ```
 
 ### Data Exploration
 
-```{r}
+In this section, I performed basic data exploration using dplyr and creating a summary table. The summary table gives a quick overview of how the classification model performed, and contain counts of type I and II errors.
 
+```{r}
+summary_table <- penguin_pred %>%
+  group_by(sex,.pred_class) %>%
+  summarise(
+    count_sex = n(),
+    avg_female_pred_prob = mean(.pred_female),
+    .groups = "drop"
+  )
+
+summary_table
 ```
 
 ### Graph
 
+I created a graph that shows where the models is making errors in terms of Predicted Probability of Female. From the graph, you can see that the model is making errors when the probability is closer to .5.
+
 ```{r}
+penguin_eval <- penguin_pred %>%
+  mutate(
+    outcome = case_when(
+      sex == "female" & .pred_class == "female" ~ "True Positive",
+      sex == "male" & .pred_class == "male"     ~ "True Negative",
+      sex == "male" & .pred_class == "female"   ~ "False Positive (Type I)",
+      sex == "female" & .pred_class == "male"   ~ "False Negative (Type II)"
+    )
+  )
+
+ggplot(penguin_eval, aes(x=.pred_female, fill = outcome)) +
+  geom_histogram(binwidth = 0.05, color = "white", position = "stack") + 
+  geom_vline(xintercept = 0.5, linetype = "dashed", color = "black", linewidth = 0.8) +
+  theme_minimal() +
+  labs(
+    title = "Prediction Distribution with Classification Errors",
+    subtitle = "Dashed line represents 0.5 classification threshold",
+    x = "Predicted Probability (Female)",
+    y = "Count",
+    fill = "Classification Outcome"
+  )
 
 ```
 
 ### Null Error Rate
 
+In this section, I calculated the null error rate for the penguin sample and created a graph showing the distribution of penguin sex. The null error rate tells you the error rate of taking the best guess, so this means the model created should have an error rate that is significantly less.
+
 ```{r}
 
+null_error_rate <- penguin_pred %>%
+  count(sex) %>%
+  mutate(proportion = n / sum(n)) %>%
+  summarise(null_error_rate = 1 - max(proportion))
+
+null_error_rate
+
+ggplot(penguin_pred, aes(x=sex,fill=sex))+
+  geom_bar(color="white") +
+  theme_minimal()+
+  labs(
+    title = "Count of Actual Penguin by Sex"
+  )
 ```
 
 ### Confusion Matrices at Multiple Thresholds
 
 ```{r}
+library(yardstick)
+
+penguin_eval <- penguin_pred %>%
+  mutate(sex = factor(sex, levels = c("female", "male")))
+
+print("--- Threshold: 0.2 ---")
+matrix_1 <- penguin_eval %>%
+  mutate(pred = factor(ifelse(.pred_female >= 0.2, "female", "male"), levels = c("female", "male"))) %>%
+  conf_mat(truth = sex, estimate = pred)
+matrix_1
+
+print("--- Threshold: 0.5 ---")
+matrix_2 <- penguin_eval %>%
+  mutate(pred = factor(ifelse(.pred_female >= 0.5, "female", "male"), levels = c("female", "male"))) %>%
+  conf_mat(truth = sex, estimate = pred)
+matrix_2
+
+print("--- Threshold: 0.8 ---")
+matrix_3 <- penguin_eval %>%
+  mutate(pred = factor(ifelse(.pred_female >= 0.8, "female", "male"), levels = c("female", "male"))) %>%
+  conf_mat(truth = sex, estimate = pred)
+matrix_3
 
 ```
 
