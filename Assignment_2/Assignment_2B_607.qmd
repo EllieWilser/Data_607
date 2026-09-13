@@ -23,7 +23,7 @@ For this assignment, I plan to go through the planned out code chucks below whic
 
 ### Loading Data and Libraries
 
-```{r}
+```{r,message=FALSE, warning=FALSE}
 library(readr)
 library(dplyr)
 library(tidyverse)
@@ -60,7 +60,7 @@ summary_table
 
 ### Graph
 
-I created a graph that shows where the models is making errors in terms of Predicted Probability of Female. From the graph, you can see that the model is making errors when the probability is closer to .5.
+I created a graph that shows where the model is making errors in terms of Predicted Probability of Female. From the graph, you can see that the model is making errors when the probability is closer to .5.
 
 ```{r}
 penguin_eval <- penguin_pred %>%
@@ -113,6 +113,7 @@ ggplot(penguin_pred, aes(x=sex,fill=sex))+
 ```{r}
 library(yardstick)
 
+#Turns sex into a factor
 penguin_eval <- penguin_pred %>%
   mutate(sex = factor(sex, levels = c("female", "male")))
 
@@ -138,12 +139,63 @@ matrix_3
 
 ### Performance Metrics
 
-```{r}
+For the performance metrics, I used the yardstick package again. I created a function to extract the metrics from my matrices above, and then ran the function on each matrix.
 
+```{r}
+extract_metrics <- function(matrix, threshold_label) {
+  summary(matrix) %>%
+    filter(.metric %in% c("accuracy", "precision", "recall", "f_meas")) %>%
+    select(.metric, .estimate) %>%
+    mutate(Threshold = threshold_label)
+}
+
+metrics_table <- bind_rows(
+  extract_metrics(matrix_1, "0.2"),
+  extract_metrics(matrix_2, "0.5"),
+  extract_metrics(matrix_3, "0.8")
+) %>%
+  pivot_wider(names_from = .metric, values_from = .estimate) %>%
+  select(Threshold, accuracy, precision, recall, f_meas)
+
+print(metrics_table)
+```
+
+For reference this is what the yardstick package "summary" function creates
+
+```{r}
+summary(matrix_1)
 ```
 
 ### **Threshold Use Cases**
 
-```{r}
+Picking the threshold for the model is useful when trying to minimize either Type I or Type II errors. A higher threshold minimizes Type I error and lower threshold minimizes Type II. The trade off is when minimizing one type of error, the rate of the other error type increases. This can be seen in the graph below:
 
+```{r}
+penguin_eval <- penguin_pred %>%
+  mutate(
+    outcome = case_when(
+      sex == "female" & .pred_class == "female" ~ "True Positive",
+      sex == "male" & .pred_class == "male"     ~ "True Negative",
+      sex == "male" & .pred_class == "female"   ~ "False Positive (Type I)",
+      sex == "female" & .pred_class == "male"   ~ "False Negative (Type II)"
+    )
+  )
+
+ggplot(penguin_eval, aes(x=.pred_female, fill = outcome)) +
+  geom_histogram(binwidth = 0.05, color = "white", position = "stack") + 
+  geom_vline(xintercept = 0.5, linetype = "dashed", color = "black", linewidth = 0.8) +
+  geom_vline(xintercept = 0.8, linetype = "dashed", color = "black", linewidth = 0.8) +
+  geom_vline(xintercept = 0.2, linetype = "dashed", color = "black", linewidth = 0.8) +
+  theme_minimal() +
+  labs(
+    title = "Prediction Distribution with Classification Errors",
+    subtitle = "Classification based on .5 threshold",
+    x = "Predicted Probability (Female)",
+    y = "Count",
+    fill = "Classification Outcome"
+  )
 ```
+
+## Conclusion
+
+I felt this assignment gave me a great exposure to binary classification, as well as performance metrics. Exploring the data set with ggplot2 gave me a deeper understanding of Type I and II errors. For the future, I think more exposure to working with the yardstick package will help my understanding of using the package.

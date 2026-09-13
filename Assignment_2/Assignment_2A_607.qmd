@@ -25,7 +25,7 @@ After the data is in my R environment, I will compute average ratings and count 
 
 ## Code
 
-```{r Libraries}
+```{r Libraries, message=FALSE, warning=FALSE}
 library(DBI)
 library(RPostgres)
 library(tidyverse)
@@ -98,3 +98,7 @@ user_summary
 movie_summary
 
 ```
+
+## Conclusion
+
+This assignment gave me a great introduction to working with PostgreSQL locally. At my current job, I work a lot with cloud based databases like Google Cloud Platform, so a database like PostgreSQL was new for me. I look forward to working more with SQL in the future of this class.
