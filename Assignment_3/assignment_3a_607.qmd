@@ -33,7 +33,16 @@ The only challenges I anticipate is reformatting the data, and the small number 
 
 ### Loading Data (Copied from Assignment 2)
 
+```{r Libraries, message=FALSE, warning=FALSE}
+  library(DBI)
+  library(RPostgres)
+  library(tidyverse)
+  library(readr)
+  library(dplyr)
+```
+
 ```{r Connecting To DB}
+library(RPostgres)
 con <- dbConnect(
   RPostgres::Postgres(),
   dbname   = "Assignment_2",
