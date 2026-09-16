@@ -1,0 +1,14 @@
+name: assignment_1_607_wilser
+title: Assignment_1_607_Wilser
+username: elliewilser
+account: elliewilser
+server: connect.posit.cloud
+hostUrl: https://api.connect.posit.cloud/v1
+appId: 01a0ab7e-4c3b-c085-91fa-1bfd4d36e58b
+bundleId:
+url: https://connect.posit.cloud/elliewilser/content/01a0ab7e-4c3b-c085-91fa-1bfd4d36e58b
+version: 1
+quarto_version: 1.9.38
+quarto_engines: knitr
+asMultiple: FALSE
+asStatic: FALSE

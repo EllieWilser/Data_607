@@ -1,0 +1,59 @@
+---
+title: "Assignment 3A - Global Baseline Estimate"
+author: "Ellie Wilser"
+editor: visual
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    code-summary: "Show code"
+    code-tools: true
+    df-print: paged
+    smooth-scroll: true
+    embed-resources: true
+---
+
+## Introduction
+
+For this assignment I will use the data in my previous assignment that I collected from my friends. I copied the code that I used to load the data from PostgreSQL, and will implement a Global Baseline Estimate algorithm. This is a non-personalized recommendation system.
+
+Using the provided document ( ), I will create a algorithm that predicts the missing values in my data. Missing data points are from where users did not see the movie. This model will be built upon in further assignments by using personalized recommendations systems.
+
+## Approach
+
+I will start this assignment by loading in my data from PostgreSQL and putting the data into a Tidy format. After, the data will be reshaped to the necessary format for the algorithm.
+
+To calculate the recommendations, I will first calculate the global average, user averages, and movies averages. Using these values I will predict missing user rating by finding the user and movie biases, then adding to the global mean.
+
+The only challenges I anticipate is reformatting the data, and the small number of friends surveyed. Since I only surveyed a limited about of people, the biases I calculate may not be the best representation to judge against the global mean.
+
+## Code
+
+### Loading Data (Copied from Assignment 2)
+
+```{r Connecting To DB}
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname   = "Assignment_2",
+  host     = "localhost",          # Use IP or server address if remote
+  port     = 5432,                 # 5432 is the default PostgreSQL port
+  user     = "postgres"
+)
+```
+
+```{r Loading Data}
+ratings <- dbReadTable(con, "ratings")
+ratings
+ratings_tidy <- ratings %>%
+  pivot_longer(
+    cols = ends_with("_rating"),
+    names_to = "movie",
+    values_to = "rating",
+    values_drop_na = FALSE
+  ) %>%
+  mutate(movie = gsub("_rating$", "", movie))
+
+ratings_tidy
+```
