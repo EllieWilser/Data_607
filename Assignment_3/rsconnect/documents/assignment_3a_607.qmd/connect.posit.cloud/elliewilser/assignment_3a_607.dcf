@@ -4,11 +4,9 @@ username: elliewilser
 account: elliewilser
 server: connect.posit.cloud
 hostUrl: https://api.connect.posit.cloud/v1
-appId: 01a0abf0-1b2e-775f-2b4d-c68f2fcba710
+appId: 01a0b067-a0d0-aaf1-ffcd-5ee598a6d865
 bundleId:
-url: https://connect.posit.cloud/elliewilser/content/01a0abf0-1b2e-775f-2b4d-c68f2fcba710
+url: https://connect.posit.cloud/elliewilser/content/01a0b067-a0d0-aaf1-ffcd-5ee598a6d865
 version: 1
-quarto_version: 1.9.38
-quarto_engines: knitr
 asMultiple: FALSE
-asStatic: FALSE
+asStatic: TRUE
