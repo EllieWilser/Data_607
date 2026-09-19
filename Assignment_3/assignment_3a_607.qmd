@@ -66,3 +66,59 @@ ratings_tidy <- ratings %>%
 
 ratings_tidy
 ```
+
+## Global Baseline Estimate Implementation
+
+To implement the global baseline estimate algorithm, I first created dataframes for user averages and movies averages, and the global average consent. These variables will be used in algorithm.
+
+```{r User and Movie Averages}
+
+global_average <- mean(ratings_tidy$rating, na.rm=TRUE)
+user_average <- ratings_tidy %>%
+  group_by(friend_name) %>%
+  summarize(avg_rating_user = mean(rating, na.rm=TRUE))
+movie_average <- ratings_tidy %>%
+  group_by(movie) %>%
+  summarize(avg_rating_movie = mean(rating, na.rm=TRUE))
+```
+
+Since the algorithm will be repeated each time a prediction will be made, I decided to create a function. Each time the function is called a prediction will be calculated for the given user and movie.
+
+```{r Define Function}
+
+get_baseline_rating <- function(user,mov){
+  u_avg <- user_average %>% filter(friend_name == user) %>% pull(avg_rating_user)
+  m_avg <- movie_average %>% filter(movie == mov) %>% pull(avg_rating_movie)
+  
+  prediction <- global_average + (u_avg-global_average) + (m_avg-global_average)
+  
+  return(round(prediction,2))
+  
+}
+```
+
+## Predicting Ratings and Recommendations
+
+Donna, Alice, and Brayan are friends that are trying to decide what movie to see next. I will go through each and tell them which movie I would recommend for them.
+
+### Alice's Recommendation
+
+Using the algorithm, Alice's predicted rating for Spider Man was 1.95 and Obsession was 2.5. This means I would recommend Alice see Obsession next instead of Spider Man.
+
+```{r Predicting Ratings - Alice}
+get_baseline_rating("Alice", "spider_man")
+get_baseline_rating("Alice", "obession")
+```
+
+### Donna's Recommendation
+
+The baseline rating for Donna was a tie between weapons and mayday, meaning that either movie would be a good recommendation for her.
+
+```{r Predicting Ratings - Donna}
+get_baseline_rating("Donna", "weapons")
+get_baseline_rating("Donna", "mayday")
+```
+
+## Conclusion
+
+This algorithm does a great job providing a baseline for future recommendations. The algorithm relies heavily on the movie's average for all users. If the average for the one movie is the same as another, the algorithm will give the same predicted rating for the same user. This is because when making a recommendation for a user to decided between 2 different movies, the only variable that changes is the movie average. Personalized recommendations would give a better recommendation for users trying to decide what to watch next.
