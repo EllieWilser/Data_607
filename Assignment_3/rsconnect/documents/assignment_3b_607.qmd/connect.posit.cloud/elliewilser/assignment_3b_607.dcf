@@ -9,6 +9,6 @@ bundleId:
 url: https://connect.posit.cloud/elliewilser/content/01a0abeb-bea6-15f8-2fa0-0ffbd8032d85
 version: 1
 quarto_version: 1.9.38
-quarto_engines: markdown
+quarto_engines: knitr
 asMultiple: FALSE
 asStatic: FALSE

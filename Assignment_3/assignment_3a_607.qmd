@@ -19,7 +19,7 @@ format:
 
 For this assignment I will use the data in my previous assignment that I collected from my friends. I copied the code that I used to load the data from PostgreSQL, and will implement a Global Baseline Estimate algorithm. This is a non-personalized recommendation system.
 
-Using the provided document ( ), I will create a algorithm that predicts the missing values in my data. Missing data points are from where users did not see the movie. This model will be built upon in further assignments by using personalized recommendations systems.
+Using the provided document ([Link to Document](https://brightspace.cuny.edu/content/enforced/1344367-SPS01_DATA_607_1269_1_34036/MovieRatings.xlsx?ou=1344367)), I will create a algorithm that predicts the missing values in my data. Missing data points are from where users did not see the movie. This model will be built upon in further assignments by using personalized recommendations systems.
 
 ## Approach
 
@@ -46,8 +46,8 @@ library(dplyr)
 con <- dbConnect(
   RPostgres::Postgres(),
   dbname   = "Assignment_2",
-  host     = "localhost",          # Use IP or server address if remote
-  port     = 5432,                 # 5432 is the default PostgreSQL port
+  host     = "localhost",
+  port     = 5432,
   user     = "postgres"
 )
 ```
@@ -99,7 +99,7 @@ get_baseline_rating <- function(user,mov){
 
 ## Predicting Ratings and Recommendations
 
-Donna, Alice, and Brayan are friends that are trying to decide what movie to see next. I will go through each and tell them which movie I would recommend for them.
+Donna, and Alice are friends that are trying to decide what movie to see next. I will go through both and tell them which movie I would recommend for them.
 
 ### Alice's Recommendation
 

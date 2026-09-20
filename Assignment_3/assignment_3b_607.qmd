@@ -17,7 +17,7 @@ format:
 
 ## Introduction
 
-For this assignment, I will be analyzing electricity sales from commercial customers. This category is where data centers are listed under by the U.S. Energy Information Administration (EIA). I will find the trend in electricity consumption from 2015 to current, and see if there as been a significant increase that coincides with the rise of data centers.
+For this assignment, I will be analyzing electricity sales from commercial customers. This category is where data centers are listed under by the U.S. Energy Information Administration (EIA). I will find the trend in electricity prices from 2015 to current, and see if there as been a significant increase that coincides with the rise of data centers.
 
 ## Approach
 
@@ -32,3 +32,186 @@ I used Gemini to recommend a data source for me to use. This is the prompt I use
 This answer is where I found the data set I will be using ([Link to data set source](https://www.eia.gov/opendata/browser/electricity/retail-sales)). I used the EIA API to download the JSON file with the data set I will be using. The JSON file is stored in GitHub I will be reading it into R using the jsonlite package.
 
 I will be using different window functions throughout the assignment to answer varies business questions. I will be implementing the window functions in SQL and in Dplyr to get more practice in both. As well, I will practice different visualizations in ggplot2 and use Github throughout the assignment.
+
+## Code
+
+### Business Questions
+
+I want to focus on electricity prices in Virginia because of their abundance of data centers. These are the business questions I plan to answer throughout the assignment.
+
+Question 1: What is the trend in Virginia's Energy Price's over the past 10 years?
+
+Question 2: What were the 10 top most expensive months for electricity in Virginia during the past 10 years?
+
+Question 3: Were there any relative maximum or spikes in energy prices?
+
+### Library
+
+```{r, output=FALSE}
+library(jsonlite)
+library(dplyr)
+library(slider)
+library(lubridate)
+library(DBI)
+library(ggplot2)
+```
+
+```{r connecting to DB}
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname   = "Assignment_2",
+  host     = "localhost",          
+  port     = 5432,              
+  user     = "postgres"
+)
+```
+
+### Window Functions in Dplyr
+
+First I will create a rolling 6 month average and a year to date average using window functions in Dplyr. I want to call out the slider library I used and lubridate library. The slider library allowed me to lag my window function by 6 months to get the rolling average. Lubridate is a library that makes working with dates a lot easier in R.
+
+Documentation on the slider library can be found here ([Link to Slider Documentation](https://slider.r-lib.org/reference/slide.html)).
+
+Documentation for the lubridate library can be found here ([Link to Lubridate Documentation](https://lubridate.tidyverse.org/)).
+
+Using the jsonLite package in R made loading the data file extremely easy. This was one of my main concerns with this assignment and the data that I found.
+
+```{r Loading Data}
+energy_consumption <- fromJSON("https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_3/electricty_consumption_eia.json")
+
+
+energy_consumption <- energy_consumption$response$data
+
+energy_consumption <- energy_consumption %>%
+  mutate(
+    period = as.Date(paste0(period, "-01")),
+    year = year(period)
+  )
+```
+
+Next I created a dataframe energy_analyze which is the energy consumption data with 2 extra columns, ytd average and rolling 6 month mean.
+
+```{r YTD Average and Six Month Moving Average}
+
+energy_analyze <- energy_consumption %>% 
+  arrange(stateid, period) %>%
+  mutate(year = year(period),
+         price=as.numeric(price)) %>%
+  
+  # YTD Average
+  group_by(stateid, year) %>%
+  mutate(ytd_avg = cummean(price)) %>%
+  ungroup() %>%
+  
+  # Six Month Moving Average
+  group_by(stateid) %>%
+  arrange(period,.by_group = TRUE) %>%
+  mutate(
+    rolling_6m_mean = slide_index_dbl(
+      .x = as.numeric(price),
+      .i= period,
+      .f = mean,
+      .before = months(6),
+      .complete = FALSE
+    )
+  ) %>%
+  ungroup()
+```
+
+### Window Functions in SQL
+
+During the meetup last week, someone presented their SQL and showed how they connected their R environment to PostgreSQL. I did that for this assignment, and was able to do all my queries and create a table from RStudio. I found this extremely useful as working with the PostgreSQL IDE can be challenging.
+
+```{r}
+library(DBI)
+
+dbWriteTable(
+  conn = con, 
+  name = "energy_consumption",
+  value = energy_consumption,
+  overwrite = TRUE,
+  row.names = FALSE
+)
+
+```
+
+For my SQL query, I found it easier to create a CTE cleaned_data to fix the data type instead of querying the data directly. Overall, I preferred doing the window functions in SQL over Dplyr because to me it was more straight forward and logical.
+
+```{sql,connection = con}
+
+-- CTE Cleaned Data that fixes types
+with cleaned_data as (
+  SELECT
+    stateid,
+    period,
+    CAST(price as FLOAT) as price,
+    EXTRACT(YEAR FROM period) as YEAR
+  FROM energy_consumption
+)
+
+SELECT 
+    stateid,
+    period,
+    price,
+    year,
+    
+    -- YTD Average
+    AVG(price) OVER (
+        PARTITION BY stateid, year
+        ORDER BY period
+        ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+    ) AS ytd_avg,
+    
+    -- Six Month Moving Average
+    AVG(price) OVER (
+        PARTITION BY stateid
+        ORDER BY period
+        RANGE BETWEEN INTERVAL '6' MONTH PRECEDING AND CURRENT ROW
+    ) AS rolling_6m_mean
+
+FROM cleaned_data 
+ORDER BY stateid, period;
+```
+
+### Answers to Business Questions
+
+To find the top 10 highest price months, I used the rolling 6 month average, so not to include seasonal spikes. I found that there was a relative maximum or spike in January of 2023 that was similar to the prices that Virginia is seeing now.
+
+```{r Top 10 Highest Price Months}
+top_10_months <- energy_analyze %>%
+  arrange(desc(rolling_6m_mean)) %>%
+  head(10)
+
+top_10_months
+```
+
+Next, I created a graph in ggplot to see the overall trend in energy prices. Currently, prices are spiking fast and Virginia's electricity cost is the highest it's seen before. However, this looks very similar to the spike in 2023. This new spike in price we are seeing started in 2025 which coincides with the rise of AI and data centers in the state. As a reminder, this data is only for commercial customers in the state, which is where data centers are grouped.
+
+```{r Graph-1}
+
+energy_analyze %>%
+  ggplot(aes(x = period)) +
+  geom_line(aes(y = price, color = "Actual Price"), alpha = 0.4, linewidth = 0.8) +
+  geom_line(aes(y = rolling_6m_mean, color = "6-Month MA"), linewidth = 1.2)+
+  geom_vline(
+    xintercept = as.Date("2023-01-01"),
+    linetype = "dashed",
+    
+  ) +
+  annotate("text",x=as.Date("2024-09-01"),y=13,label="2023 Relative Max")+
+
+  labs(
+    title = "Energy Price Trends in Virginia for Commercial customers",
+    subtitle = "Comparing raw monthly prices with 6-month moving averages",
+    x = "Period",
+    y = "Price"
+  )
+    
+  
+  
+         
+```
+
+## Conclusion
+
+Using window functions, I was able to answer 3 common business questions about the electricity prices in Virginia for commercial customers. I'm curious what caused the spike in prices in march of 2023, and if the current spike we are seeing will fall back down. Further investigations could look at other states with a high number of data centers, as well as, state with a small number. This would give a baseline for compare the price of electricity and see if data center's might be the cause.
