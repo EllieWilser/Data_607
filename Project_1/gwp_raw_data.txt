@@ -1,0 +1,155 @@
+Global Warming Potential Values
+The following table includes the 100-year time horizon global warming potentials (GWP)
+relative to CO2. This table is adapted from the IPCC Fifth Assessment Report, 2014 (AR5)i. The
+AR5 values are the most recent, but the second assessment report (1995) and fourth
+assessment report (2007) values are also listed because they are sometimes used for
+inventory and reporting purposes. For more information, please see the IPCC website
+(www.ipcc.ch). The use of the latest (AR5) values is recommended. Please note that the GWP
+values provided here from the AR5 for non-CO2 gases do not include climate-carbon
+feedbacks.
+Global warming potential (GWP) values relative to CO2
+
+                                                     GWP values for 100-year time horizon
+Industrial                                   Second            Fourth           Fifth Assessment
+designation             Chemical formula     Assessment        Assessment       Report (AR5)
+or common                                    Report (SAR)      Report (AR4)
+name
+Carbon dioxide          CO2                  1                 1               1
+Methane                 CH4                  21                25              28
+Nitrous oxide           N2O                  310               298             265
+
+Substances controlled by the Montreal Protocol
+CFC-11                  CCl3F                3,800             4,750           4,660
+CFC-12                  CCl2F2               8,100             10,900          10,200
+CFC-13                  CClF3                                  14,400          13,900
+CFC-113                 CCl2FCClF2           4,800             6,130           5,820
+CFC-114                 CClF2CClF2                             10,000          8,590
+CFC-115                 CClF2CF3                               7,370           7,670
+Halon-1301              CBrF3                5,400             7,140           6,290
+Halon-1211              CBrClF2                                1,890           1,750
+Halon-2402              CBrF2CBrF2                             1,640           1,470
+Carbon tetrachloride    CCl4                 1,400             1,400           1,730
+Methyl bromide          CH3Br                                  5               2
+Methyl chloroform       CH3CCl3              100               146             160
+
+                                              GWP values for 100-year time horizon
+Industrial
+                                       Second             Fourth         Fifth
+designation         Chemical formula                      Assessment
+                                       assessment                        Assessment
+or common                                                 Report (AR4)
+                                       report (SAR)                      Report (AR5)
+name
+HCFC-21             CHCl2F                                               148
+HCFC-22             CHCLF2             1,500              1,810          1,760
+HCFC-123            CHCl2CF3           90                 77             79
+HCFC-124            CHClFCF3           470                609            527
+HCFC-141b           CH3CCl2F           600                725            782
+HCFC-142b           CH3CClF2           1,800              2,310          1,980
+HCFC-225ca          CHCl2CF2CF3                           122            127
+HCFC-225cb          CHClFCF2CClF2                         595            525
+
+Hydrofluorocarbons (HFCs)
+HFC-23              CHF3               11,700             14,800         12,400
+HFC-32              CH2F2              650                675            677
+HFC-41              CH3F2              150                               116
+HFC-125             CHF2CF3            2,800              3,500          3,170
+HFC-134             CHF2CHF2           1000                              1,120
+HFC-134a            CH2FCF3            1,300              1,430          1,300
+HFC-143             CH2FCHF2           300                               328
+HFC-143a            CH3CF3             3,800              4,470          4,800
+HFC-152             CH2FCH2F                                             16
+HFC-152a            CH3CHF2            140                124            138
+HFC-161             CH3CH2F                                              4
+HFC-227ea           CF3CHFCF3          2,900              3,220          3,350
+HFC-236cb           CH2FCF2CF3                                           1,210
+HFC-236ea           CHF2CHFCF3                                           1,330
+HFC-236fa           CF3CH2CF3          6,300              9,810          8,060
+HFC-245ca           CH2FCF2CHF2        560                               716
+HFC-245fa           CHF2CH2CF3                            1,030          858
+HFC-365mfc          CH3CF2CH2CF3                          794            804
+HFC-43-10mee        CF3CHFCHFCF2CF3    1,300              1,640          1,650
+
+                                                  GWP values for 100-year time horizon
+Industrial                                                    Fourth
+                                              Second                         Fifth
+designation          Chemical formula                         Assessment
+                                              assessment                     Assessment
+or common                                                     Report (AR4)
+                                              report (SAR)                   Report (AR5)
+name
+Perfluorinated compounds
+Sulfur hexafluoride      SF6                  23,900          22,800         23,500
+Nitrogen trifluoride     NF3                                  17,200         16,100
+PFC-14                   CF4                  6,500           7,390          6,630
+PFC-116                  C2F6                 9,200           12,200         11,100
+PFC-218                  C3F8                 7,000           8,830          8,900
+PFC-318                  c-C4F8               8,700           10,300         9,540
+PFC-31-10                C4F10                7,000           8,860          9,200
+PFC-41-12                C5F12                7,500           9,160          8,550
+PFC-51-14                C6F14                7,400           9,300          7,910
+PCF-91-18                C10F18                               >7,500         7,190
+Trifluoromethyl sulfur   SF5CF3                               17,700         17,400
+pentafluoride
+Perfluorocyclopropane    c-C3F6                                              9,200
+
+Fluorinated ethers
+HFE-125                  CHF2OCF3                             14,900         12,400
+HFE-134                  CHF2OCHF2                            6,320          5,560
+HFE-143a                 CH3OCF3                              756            523
+HCFE-235da2              CHF2OCHClCF3                         350            491
+HFE-245cb2               CH3OCF2CF3                           708            654
+HFE-245fa2               CHF2OCH2CF3                          659            812
+HFE-347mcc3              CH3OCF2CF2CF3                        575            530
+HFE-347pcf2              CHF2CF2OCH2CF3                       580            889
+HFE-356pcc3              CH3OCF2CF2CHF2                       110            413
+HFE-449sl (HFE-7100)     C4F9OCH3                             297            421
+HFE-569sf2 (HFE-7200)    C4F9OC2H5                            59             57
+HFE-43-10pccc124         CHF2OCF2OC2F4OCHF2                   1,870          2,820
+(H-Galden 1040x)
+HFE-236ca12 (HG-10)      CHF2OCF2OCHF2                        2,800          5,350
+
+                                                                                GWP values for 100-year time horizon
+    Industrial
+                                                                          Second                    Fourth       Fifth
+    designation                         Chemical formula                                            Assessment
+                                                                          assessment                             Assessment
+    or common                                                                                       Report (AR4) Report (AR5)
+                                                                          report (SAR)
+    name
+    HFE-338pcc13 (HG-01)                CHF2OCF2CF2OCHF2                                            1,500                  2,910
+    HFE-227ea                           CF3CHFOCF3                                                                         6,450
+    HFE-236ea2                          CHF2OCHFCF3                                                                        1,790
+    HFE-236fa                           CF3CH2OCF3                                                                         979
+    HFE-245fa1                          CHF2CH2OCF3                                                                        828
+    HFE 263fb2                          CF3CH2OCH3                                                                         1
+    HFE-329mcc2                         CHF2CF2OCF2CF3                                                                     3,070
+    HFE-338mcf2                         CF3CH2OCF2CF3                                                                      929
+    HFE-347mcf2                         CHF2CH2OCF2CF3                                                                     854
+    HFE-356mec3                         CH3OCF2CHFCF3                                                                      387
+    HFE-356pcf2                         CHF2CH2OCF2CHF2                                                                    719
+    HFE-356pcf3                         CHF2OCH2CF2CHF2                                                                    446
+    HFE 365mcf3                         CF3CF2CH2OCH3                                                                      <1
+    HFE-374pc2                          CHF2CF2OCH2CH3                                                                     627
+
+    Perfluoropolyethers
+    PFPMIE                                CF3OCF(CF3)CF2OCF2OCF3                                   10,300                  9,710
+
+    Hydrocarbons and other compounds - direct effects
+    Chloroform                          CHCl3                            4                                                16
+    Methylene chloride                  CH2Cl2                           9                         8.7                    9
+    Methyl chloride                     CH3Cl                                                      13                     12
+    Halon-1201                          CHBrF2                                                                            376
+
+
+IPCC data sources for more information:
+    AR4 values: https://www.ipcc.ch/publications_and_data/ar4/wg1/en/ch2s2-10-2.html
+    AR5 values: https://www.ipcc.ch/pdf/assessment-
+       report/ar5/wg1/WG1AR5_Chapter08_FINAL.pdf (p. 73-79)
+i
+ Myhre, G., D. Shindell, F.‐M. Bréon, W. Collins, J. Fuglestvedt, J. Huang, D. Koch, J.‐F. Lamarque, D. Lee, B. Mendoza, T. Nakajima, A. Robock, G.
+Stephens, T. Takemura and H. Zhang, 2013: Anthropogenic and Natural Radiative Forcing. In: Climate Change 2013: The Physical Science Basis.
+Contribution of Working Group I to the Fifth Assessment Report of the Intergovernmental Panel on Climate Change [Stocker, T.F., D. Qin, G.‐K.
+Plattner, M. Tignor, S.K. Allen, J. Boschung, A. Nauels, Y. Xia, V. Bex and P.M. Midgley (eds.)]. Cambridge University Press, Cambridge, United Kingdom
+and New York, NY, USA.
+

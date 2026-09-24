@@ -1,0 +1,46 @@
+---
+title: "Data 607: Project 1"
+author: "Ellie Wilser"
+editor: visual
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    code-summary: "Show code"
+    code-tools: true
+    df-print: paged
+    smooth-scroll: true
+    embed-resources: true
+---
+
+## Introduction
+
+The "holy grail" of carbon emission calculations is a document from the GHG Protocol that lists global warming potential for every greenhouse gas ([Link](https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf)). These global warming potentials convert other greenhouse gases into carbon dioxide equivalents which is how greenhouse gases are reported. For example, the burning of fossil fuels creates Nitrous Oxide, Methane and Carbon Dioxide, but using global warming potentials methane and nitrous oxide are converted to carbon dioxide to report one total number.
+
+This document is sadly a PDF, so it is tedious to find the conversions for many different gases. For this assignment, I want to solve that problem for myself and turn the pdf file to a txt file then finally a csv so it easier for me search for data points at work.
+
+## Approach
+
+I will start the assignment by downloading the pdf and converting it into a txt file. Then I will read the file line by line using a for loop to extract the correct data into the CSV and avoid unnecessary lines.
+
+I am anticipating reading the file line by line to be quite challenging, but if I get stuck I will an LLM to help me. Reading this PDF will be more challenging then the provided chess txt file because there is no delimiter and there is a lot of text that will need to be removed.
+
+## Code
+
+```{r results=FALSE}
+library(pdftools)
+library(readr)
+
+pdf_url <- "https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf"
+
+download.file(pdf_url, destfile = "GWP_Values.pdf", mode="wb")
+
+pdf_text_data <- pdf_text("GWP_Values.pdf")
+
+writeLines(pdf_text_data, "gwp_raw_data.txt")
+```
+
+```         
+```
