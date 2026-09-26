@@ -1,0 +1,12 @@
+name: project_1_data_607
+title: Project_1_Data_607
+username: elliewilser
+account: elliewilser
+server: connect.posit.cloud
+hostUrl: https://api.connect.posit.cloud/v1
+appId: 01a0d362-801f-e507-d816-3e6022b8d544
+bundleId:
+url: https://connect.posit.cloud/elliewilser/content/01a0d362-801f-e507-d816-3e6022b8d544
+version: 1
+asMultiple: FALSE
+asStatic: TRUE

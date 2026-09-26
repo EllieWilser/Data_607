@@ -17,30 +17,179 @@ format:
 
 ## Introduction
 
-The "holy grail" of carbon emission calculations is a document from the GHG Protocol that lists global warming potential for every greenhouse gas ([Link](https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf)). These global warming potentials convert other greenhouse gases into carbon dioxide equivalents which is how greenhouse gases are reported. For example, the burning of fossil fuels creates Nitrous Oxide, Methane and Carbon Dioxide, but using global warming potentials methane and nitrous oxide are converted to carbon dioxide to report one total number.
+The "holy grail" of carbon emission calculations is a document from the GHG Protocol that lists global warming potentials for every greenhouse gas ([Link](https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf)). These global warming potentials convert other greenhouse gases into carbon dioxide equivalents which is how greenhouse gases are reported. For example, the burning of fossil fuels creates Nitrous Oxide, Methane and Carbon Dioxide, but using global warming potentials methane and nitrous oxide are converted to carbon dioxide to report one total number.
 
 This document is sadly a PDF, so it is tedious to find the conversions for many different gases. For this assignment, I want to solve that problem for myself and turn the pdf file to a txt file then finally a csv so it easier for me search for data points at work.
 
 ## Approach
 
-I will start the assignment by downloading the pdf and converting it into a txt file. Then I will read the file line by line using a for loop to extract the correct data into the CSV and avoid unnecessary lines.
+I will start the assignment by downloading the pdf and converting it into a txt file. Then I will read the file line by line using a for loop or a function to extract the correct data into the CSV and avoid unnecessary lines.
 
-I am anticipating reading the file line by line to be quite challenging, but if I get stuck I will an LLM to help me. Reading this PDF will be more challenging then the provided chess txt file because there is no delimiter and there is a lot of text that will need to be removed.
+I am anticipating reading the file line by line to be quite challenging, but if I get stuck I will use an LLM to help me. Reading this PDF will be more challenging then the provided chess txt file because there is no delimiter and there is a lot of text that will need to be removed. As well, I will be dealing with chemical formulas.
 
 ## Code
 
-```{r results=FALSE}
+First, I download the PDF and then used the pdf tools package to turn the the pdf into text. Next, I wrote the text to a file for easier viewing.
+
+```{r loading-data, results=FALSE}
 library(pdftools)
 library(readr)
+library(stringr)
+library(dplyr)
+library(gt)
 
 pdf_url <- "https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf"
 
+# Download, convert and write PDF to Txt file
 download.file(pdf_url, destfile = "GWP_Values.pdf", mode="wb")
-
 pdf_text_data <- pdf_text("GWP_Values.pdf")
-
 writeLines(pdf_text_data, "gwp_raw_data.txt")
 ```
 
-```         
+I decided to remove lines that are not apart of the tables and the headers because that is the only text I want to include in my final csv file. I used regular expressions which are a great when dealing with strings in r. I used the following regular expression to capture lines that end with numbers: "\\\\d\\\\s\*\$"
+
+\\\\d finds a digit then \\\\s\* finds any number of white space finally \$ finds the end of a line. Putting this all together it finds lines that end with a digit followed by any amount of white space.
+
+```{r Removing Paragraph Lines}
+data_lines <- readLines("gwp_raw_data.txt")
+filtered_lines <- data_lines[grep("\\d\\s*$",data_lines)]
 ```
+
+Now that I have just the lines I want to turn into a table, I created a function that will clean my text.
+
+The function first strips the white space from the beginning and end of the line. Then if there are 2 white spaces back to back it splits the line, then the unlist function turns it into a standard R vector, finally it added in NA if there are less than 5 splits.
+
+```{r Cleaning Function Definition}
+clean_line <- function(line){
+  trimmed <- str_trim(line)
+  parts <- unlist(strsplit(trimmed, "\\s{2,}"))
+  length(parts) <- 5
+  return(parts)
+}
+```
+
+Finally, I applied the function to all lines and made the returned vectors into a data frame.
+
+```{r Applying Function}
+cleaned_lines <- filtered_lines[-1]
+gwp_table <- data.frame(do.call(rbind, lapply(cleaned_lines, clean_line)), stringsAsFactors = FALSE)
+colnames(gwp_table) <- c("Compound", "Formula", "GWP_SAR", "GWP_AR4", "GWP_AR5")
+head(gwp_table)
+```
+
+In the first 6 rows of the created data frame, I can see an issue. My function did not account for missing global warming potentials. Most the time, the blank entries will be in GWP_SAR and GWP_AR4 this happens when new greenhouse gases are found and are added to the assessment report. This is where I used Gemini to aid me with adding my data to the right first and leaving the other columns as NA. This will not totally solve my issue because there are a couple lines where the only GWP missing is GWP_AR4. For those lines I will fix them manually.
+
+## Attempt 2
+
+For attempt 2, I gave Gemini my attempt 1 and asked if the code could be modified to be "right justified". This is the code I received:
+
+```{r}
+clean_line_v2 <- function(line) {
+  trimmed <- str_trim(line)
+  if (nchar(trimmed) == 0) return(rep(NA, 5))
+  parts <- unlist(strsplit(trimmed, "\\s{2,}"))
+  
+  #AI Generate Lines
+  comp <- parts[1]
+  form <- ifelse(length(parts) > 1, parts[2], NA)
+  values <- tail(parts, -2) 
+  
+  res <- rep(NA, 5)
+  res[1] <- comp
+  res[2] <- form
+  
+  if (length(values) > 0) {
+    start_idx <- 6 - length(values)
+    res[start_idx:5] <- values
+  }
+  
+  return(res)
+}
+```
+
+After, I asked Gemini to explain each line of code, so I learn instead of just vibe coding.
+
+`comp <- parts[1]`
+
+- Extracts the first chuck as the compound name
+
+`form <- ifelse(length(parts) >1, parts[2],NA)`
+
+- Extracts the second chuck as the the formula name
+
+`values <- tails(part,-2)`
+
+- Grabs all other chucks besides the first 2
+
+`res <- rep(NA, 5)`
+
+`res[1] <- comp`
+
+`res[2] <- form`
+
+- Creates a template for the vector adds in the first 2 chucks
+
+``` code
+if (length(values) > 0) { 
+  start_idx <- 6 - length(values) 
+  res[start_idx:5] <- values 
+}
+```
+
+- This added the values in backward from slot 5 to 3, instead of 3 to 5.
+
+```{r Formating Table V2}
+cleaned_lines <- filtered_lines[-1]
+gwp_table_v2 <- data.frame(do.call(rbind, lapply(cleaned_lines, clean_line_v2)), stringsAsFactors = FALSE)
+colnames(gwp_table_v2) <- c("Compound", "Formula", "GWP_SAR", "GWP_AR4", "GWP_AR5")
+```
+
+### Manual Corrections
+
+Even after the help from Gemini there are still some rows that are incorrect because they are only missing the AR5 value. I will manually fix them, so I have a document that is accurate at the end of the assignment. These are the greenhouse gases that need to be manually fixed:
+
+HFC-41
+
+HFC-134
+
+HFC-143
+
+HFC-245ca
+
+Chloroform
+
+```{r Manual Corrects}
+target_compounds=c("HFC-41","HFC-134","HFC-143","HFC-245ca","Chloroform")
+gwp_table_v2 <- gwp_table_v2 %>%
+  mutate(GWP_SAR = if_else(Compound %in% target_compounds,GWP_AR4,GWP_SAR)) %>%
+  mutate(GWP_AR4 = if_else(Compound %in% target_compounds,NA,GWP_AR4))
+gt(head(gwp_table_v2,10))
+```
+
+### Writing to CSV
+
+Now that the table is created, the dataframe is written as a CSV and saved for future use.
+
+```{r Writing to CSV}
+write_csv(gwp_table_v2,"gwp_table.csv")
+```
+
+## Conclusion
+
+This assignment was a challenge for me. I found it difficult to find a text file that I wanted to turn into a csv file. I first tried to scrap text from the web, but I wasn't able to complete this with the time restriction of the assignment. In the future, I would like to spend more time practicing scrapping data from the web.
+
+After I decided turning the PDF into a table, I found working with a text file with no delimiter extremely challenging to work with in an algorithmic way. I spent a lot of time playing around this different regular expresses and counting white space to try and get the data in the table correctly with one algorithm. After spending a lot of time with this process and asking LLMs, I decided it would be easier to manually fix the 5 rows. I learned that when it comes to highly messy and unstructured data that sometimes it's easier to fix the data manually instead of in an algorithm.
+
+In the future, I would like to spend more time working with unstructured text because it's great practice in working with messy data. In my work, I deal with a lot of utility bills which are very similar to the global warming potential PDF.
+
+## Citations
+
+Google. (2026). *Gemini* (Large language model) \[Computer software\]. [https://gemini.google.com](https://gemini.google.com?utm_source=gemini)
+
+World Resources Institute, & World Business Council for Sustainable Development. (2016). *IPCC global warming potential values*. Greenhouse Gas Protocol. <https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf>
+
+### AI Usage Statement
+
+For this assignment, I used Gemini's Fast-Lite Model for aiding with debugging code and for my second attempt of reading the txt file to a table. After using code from Gemini, I made sure to understand what I was given.
+
+### 

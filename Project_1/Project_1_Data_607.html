@@ -3483,6 +3483,17 @@ window.onload = function() {
   <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
   <li><a href="#approach" id="toc-approach" class="nav-link" data-scroll-target="#approach">Approach</a></li>
   <li><a href="#code" id="toc-code" class="nav-link" data-scroll-target="#code">Code</a></li>
+  <li><a href="#attempt-2" id="toc-attempt-2" class="nav-link" data-scroll-target="#attempt-2">Attempt 2</a>
+  <ul class="collapse">
+  <li><a href="#manual-corrections" id="toc-manual-corrections" class="nav-link" data-scroll-target="#manual-corrections">Manual Corrections</a></li>
+  <li><a href="#writing-to-csv" id="toc-writing-to-csv" class="nav-link" data-scroll-target="#writing-to-csv">Writing to CSV</a></li>
+  </ul></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  <li><a href="#citations" id="toc-citations" class="nav-link" data-scroll-target="#citations">Citations</a>
+  <ul class="collapse">
+  <li><a href="#ai-usage-statement" id="toc-ai-usage-statement" class="nav-link" data-scroll-target="#ai-usage-statement">AI Usage Statement</a></li>
+  <li><a href="#section" id="toc-section" class="nav-link" data-scroll-target="#section"></a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -3517,34 +3528,664 @@ window.onload = function() {
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>The “holy grail” of carbon emission calculations is a document from the GHG Protocol that lists global warming potential for every greenhouse gas (<a href="https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf">Link</a>). These global warming potentials convert other greenhouse gases into carbon dioxide equivalents which is how greenhouse gases are reported. For example, the burning of fossil fuels creates Nitrous Oxide, Methane and Carbon Dioxide, but using global warming potentials methane and nitrous oxide are converted to carbon dioxide to report one total number.</p>
+<p>The “holy grail” of carbon emission calculations is a document from the GHG Protocol that lists global warming potentials for every greenhouse gas (<a href="https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf">Link</a>). These global warming potentials convert other greenhouse gases into carbon dioxide equivalents which is how greenhouse gases are reported. For example, the burning of fossil fuels creates Nitrous Oxide, Methane and Carbon Dioxide, but using global warming potentials methane and nitrous oxide are converted to carbon dioxide to report one total number.</p>
 <p>This document is sadly a PDF, so it is tedious to find the conversions for many different gases. For this assignment, I want to solve that problem for myself and turn the pdf file to a txt file then finally a csv so it easier for me search for data points at work.</p>
 </section>
 <section id="approach" class="level2">
 <h2 class="anchored" data-anchor-id="approach">Approach</h2>
-<p>I will start the assignment by downloading the pdf and converting it into a txt file. Then I will read the file line by line using a for loop to extract the correct data into the CSV and avoid unnecessary lines.</p>
-<p>I am anticipating reading the file line by line to be quite challenging, but if I get stuck I will an LLM to help me. Reading this PDF will be more challenging then the provided chess txt file because there is no delimiter and there is a lot of text that will need to be removed.</p>
+<p>I will start the assignment by downloading the pdf and converting it into a txt file. Then I will read the file line by line using a for loop or a function to extract the correct data into the CSV and avoid unnecessary lines.</p>
+<p>I am anticipating reading the file line by line to be quite challenging, but if I get stuck I will use an LLM to help me. Reading this PDF will be more challenging then the provided chess txt file because there is no delimiter and there is a lot of text that will need to be removed. As well, I will be dealing with chemical formulas.</p>
 </section>
 <section id="code" class="level2">
 <h2 class="anchored" data-anchor-id="code">Code</h2>
+<p>First, I download the PDF and then used the pdf tools package to turn the the pdf into text. Next, I wrote the text to a file for easier viewing.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pdftools)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stderr">
 <pre><code>Using poppler version 26.08.0</code></pre>
 </div>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>pdf_url <span class="ot">&lt;-</span> <span class="st">&quot;https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf&quot;</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(pdf_url, <span class="at">destfile =</span> <span class="st">&quot;GWP_Values.pdf&quot;</span>, <span class="at">mode=</span><span class="st">&quot;wb&quot;</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>pdf_text_data <span class="ot">&lt;-</span> <span class="fu">pdf_text</span>(<span class="st">&quot;GWP_Values.pdf&quot;</span>)</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(pdf_text_data, <span class="st">&quot;gwp_raw_data.txt&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: &#39;dplyr&#39;</code></pre>
 </div>
-<pre><code></code></pre>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from &#39;package:stats&#39;:
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from &#39;package:base&#39;:
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>pdf_url <span class="ot">&lt;-</span> <span class="st">&quot;https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf&quot;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Download, convert and write PDF to Txt file</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(pdf_url, <span class="at">destfile =</span> <span class="st">&quot;GWP_Values.pdf&quot;</span>, <span class="at">mode=</span><span class="st">&quot;wb&quot;</span>)</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>pdf_text_data <span class="ot">&lt;-</span> <span class="fu">pdf_text</span>(<span class="st">&quot;GWP_Values.pdf&quot;</span>)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(pdf_text_data, <span class="st">&quot;gwp_raw_data.txt&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>I decided to remove lines that are not apart of the tables and the headers because that is the only text I want to include in my final csv file. I used regular expressions which are a great when dealing with strings in r. I used the following regular expression to capture lines that end with numbers: “\\d\\s*$”</p>
+<p>\\d finds a digit then \\s* finds any number of white space finally $ finds the end of a line. Putting this all together it finds lines that end with a digit followed by any amount of white space.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>data_lines <span class="ot">&lt;-</span> <span class="fu">readLines</span>(<span class="st">&quot;gwp_raw_data.txt&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>filtered_lines <span class="ot">&lt;-</span> data_lines[<span class="fu">grep</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">d</span><span class="sc">\\</span><span class="st">s*$&quot;</span>,data_lines)]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Now that I have just the lines I want to turn into a table, I created a function that will clean my text.</p>
+<p>The function first strips the white space from the beginning and end of the line. Then if there are 2 white spaces back to back it splits the line, then the unlist function turns it into a standard R vector, finally it added in NA if there are less than 5 splits.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>clean_line <span class="ot">&lt;-</span> <span class="cf">function</span>(line){</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  trimmed <span class="ot">&lt;-</span> <span class="fu">str_trim</span>(line)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  parts <span class="ot">&lt;-</span> <span class="fu">unlist</span>(<span class="fu">strsplit</span>(trimmed, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">s{2,}&quot;</span>))</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">length</span>(parts) <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(parts)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>Finally, I applied the function to all lines and made the returned vectors into a data frame.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>cleaned_lines <span class="ot">&lt;-</span> filtered_lines[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>gwp_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(cleaned_lines, clean_line)), <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(gwp_table) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Compound&quot;</span>, <span class="st">&quot;Formula&quot;</span>, <span class="st">&quot;GWP_SAR&quot;</span>, <span class="st">&quot;GWP_AR4&quot;</span>, <span class="st">&quot;GWP_AR5&quot;</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(gwp_table)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div data-pagedtable="false">
+  <script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Compound"],"name":[1],"type":["chr"],"align":["left"]},{"label":["Formula"],"name":[2],"type":["chr"],"align":["left"]},{"label":["GWP_SAR"],"name":[3],"type":["chr"],"align":["left"]},{"label":["GWP_AR4"],"name":[4],"type":["chr"],"align":["left"]},{"label":["GWP_AR5"],"name":[5],"type":["chr"],"align":["left"]}],"data":[{"1":"Carbon dioxide","2":"CO2","3":"1","4":"1","5":"1","_rn_":"1"},{"1":"Methane","2":"CH4","3":"21","4":"25","5":"28","_rn_":"2"},{"1":"Nitrous oxide","2":"N2O","3":"310","4":"298","5":"265","_rn_":"3"},{"1":"CFC-11","2":"CCl3F","3":"3,800","4":"4,750","5":"4,660","_rn_":"4"},{"1":"CFC-12","2":"CCl2F2","3":"8,100","4":"10,900","5":"10,200","_rn_":"5"},{"1":"CFC-13","2":"CClF3","3":"14,400","4":"13,900","5":"NA","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>In the first 6 rows of the created data frame, I can see an issue. My function did not account for missing global warming potentials. Most the time, the blank entries will be in GWP_SAR and GWP_AR4 this happens when new greenhouse gases are found and are added to the assessment report. This is where I used Gemini to aid me with adding my data to the right first and leaving the other columns as NA. This will not totally solve my issue because there are a couple lines where the only GWP missing is GWP_AR4. For those lines I will fix them manually.</p>
+</section>
+<section id="attempt-2" class="level2">
+<h2 class="anchored" data-anchor-id="attempt-2">Attempt 2</h2>
+<p>For attempt 2, I gave Gemini my attempt 1 and asked if the code could be modified to be “right justified”. This is the code I received:</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>clean_line_v2 <span class="ot">&lt;-</span> <span class="cf">function</span>(line) {</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  trimmed <span class="ot">&lt;-</span> <span class="fu">str_trim</span>(line)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nchar</span>(trimmed) <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="fu">rep</span>(<span class="cn">NA</span>, <span class="dv">5</span>))</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  parts <span class="ot">&lt;-</span> <span class="fu">unlist</span>(<span class="fu">strsplit</span>(trimmed, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">s{2,}&quot;</span>))</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="co">#AI Generate Lines</span></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>  comp <span class="ot">&lt;-</span> parts[<span class="dv">1</span>]</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  form <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(parts) <span class="sc">&gt;</span> <span class="dv">1</span>, parts[<span class="dv">2</span>], <span class="cn">NA</span>)</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  values <span class="ot">&lt;-</span> <span class="fu">tail</span>(parts, <span class="sc">-</span><span class="dv">2</span>) </span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="cn">NA</span>, <span class="dv">5</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>  res[<span class="dv">1</span>] <span class="ot">&lt;-</span> comp</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>  res[<span class="dv">2</span>] <span class="ot">&lt;-</span> form</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(values) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    start_idx <span class="ot">&lt;-</span> <span class="dv">6</span> <span class="sc">-</span> <span class="fu">length</span>(values)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>    res[start_idx<span class="sc">:</span><span class="dv">5</span>] <span class="ot">&lt;-</span> values</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(res)</span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<p>After, I asked Gemini to explain each line of code, so I learn instead of just vibe coding.</p>
+<p><code>comp &lt;- parts[1]</code></p>
+<ul>
+<li>Extracts the first chuck as the compound name</li>
+</ul>
+<p><code>form &lt;- ifelse(length(parts) &gt;1, parts[2],NA)</code></p>
+<ul>
+<li>Extracts the second chuck as the the formula name</li>
+</ul>
+<p><code>values &lt;- tails(part,-2)</code></p>
+<ul>
+<li>Grabs all other chucks besides the first 2</li>
+</ul>
+<p><code>res &lt;- rep(NA, 5)</code></p>
+<p><code>res[1] &lt;- comp</code></p>
+<p><code>res[2] &lt;- form</code></p>
+<ul>
+<li>Creates a template for the vector adds in the first 2 chucks</li>
+</ul>
+<pre class="code"><code>if (length(values) &gt; 0) { 
+  start_idx &lt;- 6 - length(values) 
+  res[start_idx:5] &lt;- values 
+}</code></pre>
+<ul>
+<li>This added the values in backward from slot 5 to 3, instead of 3 to 5.</li>
+</ul>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>cleaned_lines <span class="ot">&lt;-</span> filtered_lines[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>gwp_table_v2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(cleaned_lines, clean_line_v2)), <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(gwp_table_v2) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Compound&quot;</span>, <span class="st">&quot;Formula&quot;</span>, <span class="st">&quot;GWP_SAR&quot;</span>, <span class="st">&quot;GWP_AR4&quot;</span>, <span class="st">&quot;GWP_AR5&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<section id="manual-corrections" class="level3">
+<h3 class="anchored" data-anchor-id="manual-corrections">Manual Corrections</h3>
+<p>Even after the help from Gemini there are still some rows that are incorrect because they are only missing the AR5 value. I will manually fix them, so I have a document that is accurate at the end of the assignment. These are the greenhouse gases that need to be manually fixed:</p>
+<p>HFC-41</p>
+<p>HFC-134</p>
+<p>HFC-143</p>
+<p>HFC-245ca</p>
+<p>Chloroform</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>target_compounds<span class="ot">=</span><span class="fu">c</span>(<span class="st">&quot;HFC-41&quot;</span>,<span class="st">&quot;HFC-134&quot;</span>,<span class="st">&quot;HFC-143&quot;</span>,<span class="st">&quot;HFC-245ca&quot;</span>,<span class="st">&quot;Chloroform&quot;</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>gwp_table_v2 <span class="ot">&lt;-</span> gwp_table_v2 <span class="sc">%&gt;%</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">GWP_SAR =</span> <span class="fu">if_else</span>(Compound <span class="sc">%in%</span> target_compounds,GWP_AR4,GWP_SAR)) <span class="sc">%&gt;%</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">GWP_AR4 =</span> <span class="fu">if_else</span>(Compound <span class="sc">%in%</span> target_compounds,<span class="cn">NA</span>,GWP_AR4))</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">gt</span>(<span class="fu">head</span>(gwp_table_v2,<span class="dv">10</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div id="dwxvwzrzkb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#dwxvwzrzkb table {
+font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+-webkit-font-smoothing: antialiased;
+-moz-osx-font-smoothing: grayscale;
+}
+#dwxvwzrzkb thead, #dwxvwzrzkb tbody, #dwxvwzrzkb tfoot, #dwxvwzrzkb tr, #dwxvwzrzkb td, #dwxvwzrzkb th {
+border-style: none;
+}
+#dwxvwzrzkb p {
+margin: 0;
+padding: 0;
+}
+#dwxvwzrzkb .gt_table {
+display: table;
+border-collapse: collapse;
+line-height: normal;
+margin-left: auto;
+margin-right: auto;
+color: #333333;
+font-size: 16px;
+font-weight: normal;
+font-style: normal;
+background-color: #FFFFFF;
+width: auto;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #A8A8A8;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #A8A8A8;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_caption {
+padding-top: 4px;
+padding-bottom: 4px;
+}
+#dwxvwzrzkb .gt_title {
+color: #333333;
+font-size: 125%;
+font-weight: initial;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-color: #FFFFFF;
+border-bottom-width: 0;
+}
+#dwxvwzrzkb .gt_subtitle {
+color: #333333;
+font-size: 85%;
+font-weight: initial;
+padding-top: 3px;
+padding-bottom: 5px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-color: #FFFFFF;
+border-top-width: 0;
+}
+#dwxvwzrzkb .gt_heading {
+background-color: #FFFFFF;
+text-align: center;
+border-bottom-color: #FFFFFF;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_bottom_border {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_col_headings {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_col_heading {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 6px;
+padding-left: 5px;
+padding-right: 5px;
+overflow-x: hidden;
+}
+#dwxvwzrzkb .gt_column_spanner_outer {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: normal;
+text-transform: inherit;
+padding-top: 0;
+padding-bottom: 0;
+padding-left: 4px;
+padding-right: 4px;
+}
+#dwxvwzrzkb .gt_column_spanner_outer:first-child {
+padding-left: 0;
+}
+#dwxvwzrzkb .gt_column_spanner_outer:last-child {
+padding-right: 0;
+}
+#dwxvwzrzkb .gt_column_spanner {
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: bottom;
+padding-top: 5px;
+padding-bottom: 5px;
+overflow-x: hidden;
+display: inline-block;
+width: 100%;
+}
+#dwxvwzrzkb .gt_spanner_row {
+border-bottom-style: hidden;
+}
+#dwxvwzrzkb .gt_group_heading {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+text-align: left;
+}
+#dwxvwzrzkb .gt_empty_group_heading {
+padding: 0.5px;
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+vertical-align: middle;
+}
+#dwxvwzrzkb .gt_from_md > :first-child {
+margin-top: 0;
+}
+#dwxvwzrzkb .gt_from_md > :last-child {
+margin-bottom: 0;
+}
+#dwxvwzrzkb .gt_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+margin: 10px;
+border-top-style: solid;
+border-top-width: 1px;
+border-top-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 1px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 1px;
+border-right-color: #D3D3D3;
+vertical-align: middle;
+overflow-x: hidden;
+}
+#dwxvwzrzkb .gt_stub {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+}
+#dwxvwzrzkb .gt_stub_row_group {
+color: #333333;
+background-color: #FFFFFF;
+font-size: 100%;
+font-weight: initial;
+text-transform: inherit;
+border-right-style: solid;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+padding-left: 5px;
+padding-right: 5px;
+vertical-align: top;
+}
+#dwxvwzrzkb .gt_row_group_first td {
+border-top-width: 2px;
+}
+#dwxvwzrzkb .gt_row_group_first th {
+border-top-width: 2px;
+}
+#dwxvwzrzkb .gt_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#dwxvwzrzkb .gt_first_summary_row {
+border-top-style: solid;
+border-top-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_first_summary_row.thick {
+border-top-width: 2px;
+}
+#dwxvwzrzkb .gt_last_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_grand_summary_row {
+color: #333333;
+background-color: #FFFFFF;
+text-transform: inherit;
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#dwxvwzrzkb .gt_first_grand_summary_row {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-top-style: double;
+border-top-width: 6px;
+border-top-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_last_grand_summary_row_top {
+padding-top: 8px;
+padding-bottom: 8px;
+padding-left: 5px;
+padding-right: 5px;
+border-bottom-style: double;
+border-bottom-width: 6px;
+border-bottom-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_striped {
+background-color: rgba(128, 128, 128, 0.05);
+}
+#dwxvwzrzkb .gt_table_body {
+border-top-style: solid;
+border-top-width: 2px;
+border-top-color: #D3D3D3;
+border-bottom-style: solid;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_footnotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_footnote {
+margin: 0px;
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#dwxvwzrzkb .gt_sourcenotes {
+color: #333333;
+background-color: #FFFFFF;
+border-bottom-style: none;
+border-bottom-width: 2px;
+border-bottom-color: #D3D3D3;
+border-left-style: none;
+border-left-width: 2px;
+border-left-color: #D3D3D3;
+border-right-style: none;
+border-right-width: 2px;
+border-right-color: #D3D3D3;
+}
+#dwxvwzrzkb .gt_sourcenote {
+font-size: 90%;
+padding-top: 4px;
+padding-bottom: 4px;
+padding-left: 5px;
+padding-right: 5px;
+}
+#dwxvwzrzkb .gt_left {
+text-align: left;
+}
+#dwxvwzrzkb .gt_center {
+text-align: center;
+}
+#dwxvwzrzkb .gt_right {
+text-align: right;
+font-variant-numeric: tabular-nums;
+}
+#dwxvwzrzkb .gt_font_normal {
+font-weight: normal;
+}
+#dwxvwzrzkb .gt_font_bold {
+font-weight: bold;
+}
+#dwxvwzrzkb .gt_font_italic {
+font-style: italic;
+}
+#dwxvwzrzkb .gt_super {
+font-size: 65%;
+}
+#dwxvwzrzkb .gt_footnote_marks {
+font-size: 75%;
+vertical-align: 0.4em;
+position: initial;
+}
+#dwxvwzrzkb .gt_asterisk {
+font-size: 100%;
+vertical-align: 0;
+}
+#dwxvwzrzkb .gt_indent_1 {
+text-indent: 5px;
+}
+#dwxvwzrzkb .gt_indent_2 {
+text-indent: 10px;
+}
+#dwxvwzrzkb .gt_indent_3 {
+text-indent: 15px;
+}
+#dwxvwzrzkb .gt_indent_4 {
+text-indent: 20px;
+}
+#dwxvwzrzkb .gt_indent_5 {
+text-indent: 25px;
+}
+#dwxvwzrzkb .katex-display {
+display: inline-flex !important;
+margin-bottom: 0.75em !important;
+}
+#dwxvwzrzkb div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+height: 0px !important;
+}
+</style>
+
+<table class="gt_table caption-top table table-sm table-striped small" data-quarto-bootstrap="false">
+<thead>
+<tr class="gt_col_headings header">
+<th id="Compound" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Compound</th>
+<th id="Formula" class="gt_col_heading gt_columns_bottom_border gt_left" data-quarto-table-cell-role="th" scope="col">Formula</th>
+<th id="GWP_SAR" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">GWP_SAR</th>
+<th id="GWP_AR4" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">GWP_AR4</th>
+<th id="GWP_AR5" class="gt_col_heading gt_columns_bottom_border gt_right" data-quarto-table-cell-role="th" scope="col">GWP_AR5</th>
+</tr>
+</thead>
+<tbody class="gt_table_body">
+<tr class="odd">
+<td class="gt_row gt_left" headers="Compound">Carbon dioxide</td>
+<td class="gt_row gt_left" headers="Formula">CO2</td>
+<td class="gt_row gt_right" headers="GWP_SAR">1</td>
+<td class="gt_row gt_right" headers="GWP_AR4">1</td>
+<td class="gt_row gt_right" headers="GWP_AR5">1</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Compound">Methane</td>
+<td class="gt_row gt_left" headers="Formula">CH4</td>
+<td class="gt_row gt_right" headers="GWP_SAR">21</td>
+<td class="gt_row gt_right" headers="GWP_AR4">25</td>
+<td class="gt_row gt_right" headers="GWP_AR5">28</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Compound">Nitrous oxide</td>
+<td class="gt_row gt_left" headers="Formula">N2O</td>
+<td class="gt_row gt_right" headers="GWP_SAR">310</td>
+<td class="gt_row gt_right" headers="GWP_AR4">298</td>
+<td class="gt_row gt_right" headers="GWP_AR5">265</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Compound">CFC-11</td>
+<td class="gt_row gt_left" headers="Formula">CCl3F</td>
+<td class="gt_row gt_right" headers="GWP_SAR">3,800</td>
+<td class="gt_row gt_right" headers="GWP_AR4">4,750</td>
+<td class="gt_row gt_right" headers="GWP_AR5">4,660</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Compound">CFC-12</td>
+<td class="gt_row gt_left" headers="Formula">CCl2F2</td>
+<td class="gt_row gt_right" headers="GWP_SAR">8,100</td>
+<td class="gt_row gt_right" headers="GWP_AR4">10,900</td>
+<td class="gt_row gt_right" headers="GWP_AR5">10,200</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Compound">CFC-13</td>
+<td class="gt_row gt_left" headers="Formula">CClF3</td>
+<td class="gt_row gt_right" headers="GWP_SAR">NA</td>
+<td class="gt_row gt_right" headers="GWP_AR4">14,400</td>
+<td class="gt_row gt_right" headers="GWP_AR5">13,900</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Compound">CFC-113</td>
+<td class="gt_row gt_left" headers="Formula">CCl2FCClF2</td>
+<td class="gt_row gt_right" headers="GWP_SAR">4,800</td>
+<td class="gt_row gt_right" headers="GWP_AR4">6,130</td>
+<td class="gt_row gt_right" headers="GWP_AR5">5,820</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Compound">CFC-114</td>
+<td class="gt_row gt_left" headers="Formula">CClF2CClF2</td>
+<td class="gt_row gt_right" headers="GWP_SAR">NA</td>
+<td class="gt_row gt_right" headers="GWP_AR4">10,000</td>
+<td class="gt_row gt_right" headers="GWP_AR5">8,590</td>
+</tr>
+<tr class="odd">
+<td class="gt_row gt_left" headers="Compound">CFC-115</td>
+<td class="gt_row gt_left" headers="Formula">CClF2CF3</td>
+<td class="gt_row gt_right" headers="GWP_SAR">NA</td>
+<td class="gt_row gt_right" headers="GWP_AR4">7,370</td>
+<td class="gt_row gt_right" headers="GWP_AR5">7,670</td>
+</tr>
+<tr class="even">
+<td class="gt_row gt_left" headers="Compound">Halon-1301</td>
+<td class="gt_row gt_left" headers="Formula">CBrF3</td>
+<td class="gt_row gt_right" headers="GWP_SAR">5,400</td>
+<td class="gt_row gt_right" headers="GWP_AR4">7,140</td>
+<td class="gt_row gt_right" headers="GWP_AR5">6,290</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="writing-to-csv" class="level3">
+<h3 class="anchored" data-anchor-id="writing-to-csv">Writing to CSV</h3>
+<p>Now that the table is created, the dataframe is written as a CSV and saved for future use.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(gwp_table_v2,<span class="st">&quot;gwp_table.csv&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>This assignment was a challenge for me. I found it difficult to find a text file that I wanted to turn into a csv file. I first tried to scrap text from the web, but I wasn’t able to complete this with the time restriction of the assignment. In the future, I would like to spend more time practicing scrapping data from the web.</p>
+<p>After I decided turning the PDF into a table, I found working with a text file with no delimiter extremely challenging to work with in an algorithmic way. I spent a lot of time playing around this different regular expresses and counting white space to try and get the data in the table correctly with one algorithm. After spending a lot of time with this process and asking LLMs, I decided it would be easier to manually fix the 5 rows. I learned that when it comes to highly messy and unstructured data that sometimes it’s easier to fix the data manually instead of in an algorithm.</p>
+<p>In the future, I would like to spend more time working with unstructured text because it’s great practice in working with messy data. In my work, I deal with a lot of utility bills which are very similar to the global warming potential PDF.</p>
+</section>
+<section id="citations" class="level2">
+<h2 class="anchored" data-anchor-id="citations">Citations</h2>
+<p>Google. (2026). <em>Gemini</em> (Large language model) [Computer software]. <a href="https://gemini.google.com?utm_source=gemini">https://gemini.google.com</a></p>
+<p>World Resources Institute, &amp; World Business Council for Sustainable Development. (2016). <em>IPCC global warming potential values</em>. Greenhouse Gas Protocol. <a href="https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf" class="uri">https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf</a></p>
+<section id="ai-usage-statement" class="level3">
+<h3 class="anchored" data-anchor-id="ai-usage-statement">AI Usage Statement</h3>
+<p>For this assignment, I used Gemini’s Fast-Lite Model for aiding with debugging code and for my second attempt of reading the txt file to a table. After using code from Gemini, I made sure to understand what I was given.</p>
+</section>
+<section id="section" class="level3">
+<h3 class="anchored" data-anchor-id="section"></h3>
 <!-- -->
 
+</section>
 </section>
 
 </main>
@@ -4000,52 +4641,202 @@ window.onload = function() {
     }
   });
   </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> &quot;Data 607: Project 1&quot;</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> &quot;Ellie Wilser&quot;</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> visual</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co">    theme: cosmo</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-location: left</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-depth: 3</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co">    code-summary: &quot;Show code&quot;</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co">    df-print: paged</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="co">    smooth-scroll: true</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co">    embed-resources: true</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>The &quot;holy grail&quot; of carbon emission calculations is a document from the GHG Protocol that lists global warming potential for every greenhouse gas (<span class="co">[</span><span class="ot">Link</span><span class="co">](https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf)</span>). These global warming potentials convert other greenhouse gases into carbon dioxide equivalents which is how greenhouse gases are reported. For example, the burning of fossil fuels creates Nitrous Oxide, Methane and Carbon Dioxide, but using global warming potentials methane and nitrous oxide are converted to carbon dioxide to report one total number.</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>This document is sadly a PDF, so it is tedious to find the conversions for many different gases. For this assignment, I want to solve that problem for myself and turn the pdf file to a txt file then finally a csv so it easier for me search for data points at work.</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a><span class="fu">## Approach</span></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>I will start the assignment by downloading the pdf and converting it into a txt file. Then I will read the file line by line using a for loop to extract the correct data into the CSV and avoid unnecessary lines.</span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>I am anticipating reading the file line by line to be quite challenging, but if I get stuck I will an LLM to help me. Reading this PDF will be more challenging then the provided chess txt file because there is no delimiter and there is a lot of text that will need to be removed.</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a><span class="fu">## Code</span></span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a><span class="in">```{r results=FALSE}</span></span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pdftools)</span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>pdf_url <span class="ot">&lt;-</span> <span class="st">&quot;https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf&quot;</span></span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(pdf_url, <span class="at">destfile =</span> <span class="st">&quot;GWP_Values.pdf&quot;</span>, <span class="at">mode=</span><span class="st">&quot;wb&quot;</span>)</span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>pdf_text_data <span class="ot">&lt;-</span> <span class="fu">pdf_text</span>(<span class="st">&quot;GWP_Values.pdf&quot;</span>)</span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(pdf_text_data, <span class="st">&quot;gwp_raw_data.txt&quot;</span>)</span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a><span class="in">```         </span></span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> &quot;Data 607: Project 1&quot;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="an">author:</span><span class="co"> &quot;Ellie Wilser&quot;</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="an">editor:</span><span class="co"> visual</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="an">format:</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co">  html:</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="co">    theme: cosmo</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="co">    toc: true</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-location: left</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="co">    toc-depth: 3</span></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co">    code-summary: &quot;Show code&quot;</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co">    code-tools: true</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="co">    df-print: paged</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="co">    smooth-scroll: true</span></span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a><span class="co">    embed-resources: true</span></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>The &quot;holy grail&quot; of carbon emission calculations is a document from the GHG Protocol that lists global warming potentials for every greenhouse gas (<span class="co">[</span><span class="ot">Link</span><span class="co">](https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf)</span>). These global warming potentials convert other greenhouse gases into carbon dioxide equivalents which is how greenhouse gases are reported. For example, the burning of fossil fuels creates Nitrous Oxide, Methane and Carbon Dioxide, but using global warming potentials methane and nitrous oxide are converted to carbon dioxide to report one total number.</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>This document is sadly a PDF, so it is tedious to find the conversions for many different gases. For this assignment, I want to solve that problem for myself and turn the pdf file to a txt file then finally a csv so it easier for me search for data points at work.</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a><span class="fu">## Approach</span></span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a>I will start the assignment by downloading the pdf and converting it into a txt file. Then I will read the file line by line using a for loop or a function to extract the correct data into the CSV and avoid unnecessary lines.</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a>I am anticipating reading the file line by line to be quite challenging, but if I get stuck I will use an LLM to help me. Reading this PDF will be more challenging then the provided chess txt file because there is no delimiter and there is a lot of text that will need to be removed. As well, I will be dealing with chemical formulas.</span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a><span class="fu">## Code</span></span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>First, I download the PDF and then used the pdf tools package to turn the the pdf into text. Next, I wrote the text to a file for easier viewing.</span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a><span class="in">```{r loading-data, results=FALSE}</span></span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pdftools)</span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(readr)</span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stringr)</span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(gt)</span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>pdf_url <span class="ot">&lt;-</span> <span class="st">&quot;https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf&quot;</span></span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a><span class="co"># Download, convert and write PDF to Txt file</span></span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a><span class="fu">download.file</span>(pdf_url, <span class="at">destfile =</span> <span class="st">&quot;GWP_Values.pdf&quot;</span>, <span class="at">mode=</span><span class="st">&quot;wb&quot;</span>)</span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a>pdf_text_data <span class="ot">&lt;-</span> <span class="fu">pdf_text</span>(<span class="st">&quot;GWP_Values.pdf&quot;</span>)</span>
+<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a><span class="fu">writeLines</span>(pdf_text_data, <span class="st">&quot;gwp_raw_data.txt&quot;</span>)</span>
+<span id="cb16-47"><a href="#cb16-47" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-48"><a href="#cb16-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-49"><a href="#cb16-49" aria-hidden="true" tabindex="-1"></a>I decided to remove lines that are not apart of the tables and the headers because that is the only text I want to include in my final csv file. I used regular expressions which are a great when dealing with strings in r. I used the following regular expression to capture lines that end with numbers: &quot;<span class="sc">\\\\</span>d<span class="sc">\\\\</span>s<span class="sc">\*</span>\$&quot;</span>
+<span id="cb16-50"><a href="#cb16-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-51"><a href="#cb16-51" aria-hidden="true" tabindex="-1"></a><span class="sc">\\\\</span>d finds a digit then <span class="sc">\\\\</span>s<span class="sc">\*</span> finds any number of white space finally \$ finds the end of a line. Putting this all together it finds lines that end with a digit followed by any amount of white space.</span>
+<span id="cb16-52"><a href="#cb16-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-53"><a href="#cb16-53" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Removing Paragraph Lines}</span></span>
+<span id="cb16-54"><a href="#cb16-54" aria-hidden="true" tabindex="-1"></a>data_lines <span class="ot">&lt;-</span> <span class="fu">readLines</span>(<span class="st">&quot;gwp_raw_data.txt&quot;</span>)</span>
+<span id="cb16-55"><a href="#cb16-55" aria-hidden="true" tabindex="-1"></a>filtered_lines <span class="ot">&lt;-</span> data_lines[<span class="fu">grep</span>(<span class="st">&quot;</span><span class="sc">\\</span><span class="st">d</span><span class="sc">\\</span><span class="st">s*$&quot;</span>,data_lines)]</span>
+<span id="cb16-56"><a href="#cb16-56" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-57"><a href="#cb16-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-58"><a href="#cb16-58" aria-hidden="true" tabindex="-1"></a>Now that I have just the lines I want to turn into a table, I created a function that will clean my text.</span>
+<span id="cb16-59"><a href="#cb16-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-60"><a href="#cb16-60" aria-hidden="true" tabindex="-1"></a>The function first strips the white space from the beginning and end of the line. Then if there are 2 white spaces back to back it splits the line, then the unlist function turns it into a standard R vector, finally it added in NA if there are less than 5 splits.</span>
+<span id="cb16-61"><a href="#cb16-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-62"><a href="#cb16-62" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Cleaning Function Definition}</span></span>
+<span id="cb16-63"><a href="#cb16-63" aria-hidden="true" tabindex="-1"></a>clean_line <span class="ot">&lt;-</span> <span class="cf">function</span>(line){</span>
+<span id="cb16-64"><a href="#cb16-64" aria-hidden="true" tabindex="-1"></a>  trimmed <span class="ot">&lt;-</span> <span class="fu">str_trim</span>(line)</span>
+<span id="cb16-65"><a href="#cb16-65" aria-hidden="true" tabindex="-1"></a>  parts <span class="ot">&lt;-</span> <span class="fu">unlist</span>(<span class="fu">strsplit</span>(trimmed, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">s{2,}&quot;</span>))</span>
+<span id="cb16-66"><a href="#cb16-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">length</span>(parts) <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb16-67"><a href="#cb16-67" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(parts)</span>
+<span id="cb16-68"><a href="#cb16-68" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-69"><a href="#cb16-69" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-70"><a href="#cb16-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-71"><a href="#cb16-71" aria-hidden="true" tabindex="-1"></a>Finally, I applied the function to all lines and made the returned vectors into a data frame.</span>
+<span id="cb16-72"><a href="#cb16-72" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-73"><a href="#cb16-73" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Applying Function}</span></span>
+<span id="cb16-74"><a href="#cb16-74" aria-hidden="true" tabindex="-1"></a>cleaned_lines <span class="ot">&lt;-</span> filtered_lines[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb16-75"><a href="#cb16-75" aria-hidden="true" tabindex="-1"></a>gwp_table <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(cleaned_lines, clean_line)), <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb16-76"><a href="#cb16-76" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(gwp_table) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Compound&quot;</span>, <span class="st">&quot;Formula&quot;</span>, <span class="st">&quot;GWP_SAR&quot;</span>, <span class="st">&quot;GWP_AR4&quot;</span>, <span class="st">&quot;GWP_AR5&quot;</span>)</span>
+<span id="cb16-77"><a href="#cb16-77" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(gwp_table)</span>
+<span id="cb16-78"><a href="#cb16-78" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-79"><a href="#cb16-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-80"><a href="#cb16-80" aria-hidden="true" tabindex="-1"></a>In the first 6 rows of the created data frame, I can see an issue. My function did not account for missing global warming potentials. Most the time, the blank entries will be in GWP_SAR and GWP_AR4 this happens when new greenhouse gases are found and are added to the assessment report. This is where I used Gemini to aid me with adding my data to the right first and leaving the other columns as NA. This will not totally solve my issue because there are a couple lines where the only GWP missing is GWP_AR4. For those lines I will fix them manually.</span>
+<span id="cb16-81"><a href="#cb16-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-82"><a href="#cb16-82" aria-hidden="true" tabindex="-1"></a><span class="fu">## Attempt 2</span></span>
+<span id="cb16-83"><a href="#cb16-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-84"><a href="#cb16-84" aria-hidden="true" tabindex="-1"></a>For attempt 2, I gave Gemini my attempt 1 and asked if the code could be modified to be &quot;right justified&quot;. This is the code I received:</span>
+<span id="cb16-85"><a href="#cb16-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-88"><a href="#cb16-88" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb16-89"><a href="#cb16-89" aria-hidden="true" tabindex="-1"></a>clean_line_v2 <span class="ot">&lt;-</span> <span class="cf">function</span>(line) {</span>
+<span id="cb16-90"><a href="#cb16-90" aria-hidden="true" tabindex="-1"></a>  trimmed <span class="ot">&lt;-</span> <span class="fu">str_trim</span>(line)</span>
+<span id="cb16-91"><a href="#cb16-91" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">nchar</span>(trimmed) <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">return</span>(<span class="fu">rep</span>(<span class="cn">NA</span>, <span class="dv">5</span>))</span>
+<span id="cb16-92"><a href="#cb16-92" aria-hidden="true" tabindex="-1"></a>  parts <span class="ot">&lt;-</span> <span class="fu">unlist</span>(<span class="fu">strsplit</span>(trimmed, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">s{2,}&quot;</span>))</span>
+<span id="cb16-93"><a href="#cb16-93" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-94"><a href="#cb16-94" aria-hidden="true" tabindex="-1"></a>  <span class="co">#AI Generate Lines</span></span>
+<span id="cb16-95"><a href="#cb16-95" aria-hidden="true" tabindex="-1"></a>  comp <span class="ot">&lt;-</span> parts[<span class="dv">1</span>]</span>
+<span id="cb16-96"><a href="#cb16-96" aria-hidden="true" tabindex="-1"></a>  form <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(<span class="fu">length</span>(parts) <span class="sc">&gt;</span> <span class="dv">1</span>, parts[<span class="dv">2</span>], <span class="cn">NA</span>)</span>
+<span id="cb16-97"><a href="#cb16-97" aria-hidden="true" tabindex="-1"></a>  values <span class="ot">&lt;-</span> <span class="fu">tail</span>(parts, <span class="sc">-</span><span class="dv">2</span>) </span>
+<span id="cb16-98"><a href="#cb16-98" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-99"><a href="#cb16-99" aria-hidden="true" tabindex="-1"></a>  res <span class="ot">&lt;-</span> <span class="fu">rep</span>(<span class="cn">NA</span>, <span class="dv">5</span>)</span>
+<span id="cb16-100"><a href="#cb16-100" aria-hidden="true" tabindex="-1"></a>  res[<span class="dv">1</span>] <span class="ot">&lt;-</span> comp</span>
+<span id="cb16-101"><a href="#cb16-101" aria-hidden="true" tabindex="-1"></a>  res[<span class="dv">2</span>] <span class="ot">&lt;-</span> form</span>
+<span id="cb16-102"><a href="#cb16-102" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-103"><a href="#cb16-103" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">length</span>(values) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb16-104"><a href="#cb16-104" aria-hidden="true" tabindex="-1"></a>    start_idx <span class="ot">&lt;-</span> <span class="dv">6</span> <span class="sc">-</span> <span class="fu">length</span>(values)</span>
+<span id="cb16-105"><a href="#cb16-105" aria-hidden="true" tabindex="-1"></a>    res[start_idx<span class="sc">:</span><span class="dv">5</span>] <span class="ot">&lt;-</span> values</span>
+<span id="cb16-106"><a href="#cb16-106" aria-hidden="true" tabindex="-1"></a>  }</span>
+<span id="cb16-107"><a href="#cb16-107" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb16-108"><a href="#cb16-108" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(res)</span>
+<span id="cb16-109"><a href="#cb16-109" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb16-110"><a href="#cb16-110" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-111"><a href="#cb16-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-112"><a href="#cb16-112" aria-hidden="true" tabindex="-1"></a>After, I asked Gemini to explain each line of code, so I learn instead of just vibe coding.</span>
+<span id="cb16-113"><a href="#cb16-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-114"><a href="#cb16-114" aria-hidden="true" tabindex="-1"></a><span class="in">`comp &lt;- parts[1]`</span></span>
+<span id="cb16-115"><a href="#cb16-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-116"><a href="#cb16-116" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Extracts the first chuck as the compound name</span>
+<span id="cb16-117"><a href="#cb16-117" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-118"><a href="#cb16-118" aria-hidden="true" tabindex="-1"></a><span class="in">`form &lt;- ifelse(length(parts) &gt;1, parts[2],NA)`</span></span>
+<span id="cb16-119"><a href="#cb16-119" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-120"><a href="#cb16-120" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Extracts the second chuck as the the formula name</span>
+<span id="cb16-121"><a href="#cb16-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-122"><a href="#cb16-122" aria-hidden="true" tabindex="-1"></a><span class="in">`values &lt;- tails(part,-2)`</span></span>
+<span id="cb16-123"><a href="#cb16-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-124"><a href="#cb16-124" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Grabs all other chucks besides the first 2</span>
+<span id="cb16-125"><a href="#cb16-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-126"><a href="#cb16-126" aria-hidden="true" tabindex="-1"></a><span class="in">`res &lt;- rep(NA, 5)`</span></span>
+<span id="cb16-127"><a href="#cb16-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-128"><a href="#cb16-128" aria-hidden="true" tabindex="-1"></a><span class="in">`res[1] &lt;- comp`</span></span>
+<span id="cb16-129"><a href="#cb16-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-130"><a href="#cb16-130" aria-hidden="true" tabindex="-1"></a><span class="in">`res[2] &lt;- form`</span></span>
+<span id="cb16-131"><a href="#cb16-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-132"><a href="#cb16-132" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Creates a template for the vector adds in the first 2 chucks</span>
+<span id="cb16-133"><a href="#cb16-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-134"><a href="#cb16-134" aria-hidden="true" tabindex="-1"></a><span class="in">``` code</span></span>
+<span id="cb16-135"><a href="#cb16-135" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="op">(</span>length<span class="op">(</span>values<span class="op">)</span> <span class="op">&gt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span> </span>
+<span id="cb16-136"><a href="#cb16-136" aria-hidden="true" tabindex="-1"></a>  start_idx <span class="op">&lt;-</span> <span class="dv">6</span> <span class="op">-</span> length<span class="op">(</span>values<span class="op">)</span> </span>
+<span id="cb16-137"><a href="#cb16-137" aria-hidden="true" tabindex="-1"></a>  res<span class="op">[</span>start_idx<span class="op">:</span><span class="dv">5</span><span class="op">]</span> <span class="op">&lt;-</span> values </span>
+<span id="cb16-138"><a href="#cb16-138" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb16-139"><a href="#cb16-139" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-140"><a href="#cb16-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-141"><a href="#cb16-141" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>This added the values in backward from slot 5 to 3, instead of 3 to 5.</span>
+<span id="cb16-142"><a href="#cb16-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-143"><a href="#cb16-143" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Formating Table V2}</span></span>
+<span id="cb16-144"><a href="#cb16-144" aria-hidden="true" tabindex="-1"></a>cleaned_lines <span class="ot">&lt;-</span> filtered_lines[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb16-145"><a href="#cb16-145" aria-hidden="true" tabindex="-1"></a>gwp_table_v2 <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="fu">do.call</span>(rbind, <span class="fu">lapply</span>(cleaned_lines, clean_line_v2)), <span class="at">stringsAsFactors =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb16-146"><a href="#cb16-146" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(gwp_table_v2) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Compound&quot;</span>, <span class="st">&quot;Formula&quot;</span>, <span class="st">&quot;GWP_SAR&quot;</span>, <span class="st">&quot;GWP_AR4&quot;</span>, <span class="st">&quot;GWP_AR5&quot;</span>)</span>
+<span id="cb16-147"><a href="#cb16-147" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-148"><a href="#cb16-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-149"><a href="#cb16-149" aria-hidden="true" tabindex="-1"></a><span class="fu">### Manual Corrections</span></span>
+<span id="cb16-150"><a href="#cb16-150" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-151"><a href="#cb16-151" aria-hidden="true" tabindex="-1"></a>Even after the help from Gemini there are still some rows that are incorrect because they are only missing the AR5 value. I will manually fix them, so I have a document that is accurate at the end of the assignment. These are the greenhouse gases that need to be manually fixed:</span>
+<span id="cb16-152"><a href="#cb16-152" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-153"><a href="#cb16-153" aria-hidden="true" tabindex="-1"></a>HFC-41</span>
+<span id="cb16-154"><a href="#cb16-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-155"><a href="#cb16-155" aria-hidden="true" tabindex="-1"></a>HFC-134</span>
+<span id="cb16-156"><a href="#cb16-156" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-157"><a href="#cb16-157" aria-hidden="true" tabindex="-1"></a>HFC-143</span>
+<span id="cb16-158"><a href="#cb16-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-159"><a href="#cb16-159" aria-hidden="true" tabindex="-1"></a>HFC-245ca</span>
+<span id="cb16-160"><a href="#cb16-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-161"><a href="#cb16-161" aria-hidden="true" tabindex="-1"></a>Chloroform</span>
+<span id="cb16-162"><a href="#cb16-162" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-163"><a href="#cb16-163" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Manual Corrects}</span></span>
+<span id="cb16-164"><a href="#cb16-164" aria-hidden="true" tabindex="-1"></a>target_compounds<span class="ot">=</span><span class="fu">c</span>(<span class="st">&quot;HFC-41&quot;</span>,<span class="st">&quot;HFC-134&quot;</span>,<span class="st">&quot;HFC-143&quot;</span>,<span class="st">&quot;HFC-245ca&quot;</span>,<span class="st">&quot;Chloroform&quot;</span>)</span>
+<span id="cb16-165"><a href="#cb16-165" aria-hidden="true" tabindex="-1"></a>gwp_table_v2 <span class="ot">&lt;-</span> gwp_table_v2 <span class="sc">%&gt;%</span></span>
+<span id="cb16-166"><a href="#cb16-166" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">GWP_SAR =</span> <span class="fu">if_else</span>(Compound <span class="sc">%in%</span> target_compounds,GWP_AR4,GWP_SAR)) <span class="sc">%&gt;%</span></span>
+<span id="cb16-167"><a href="#cb16-167" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">GWP_AR4 =</span> <span class="fu">if_else</span>(Compound <span class="sc">%in%</span> target_compounds,<span class="cn">NA</span>,GWP_AR4))</span>
+<span id="cb16-168"><a href="#cb16-168" aria-hidden="true" tabindex="-1"></a><span class="fu">gt</span>(<span class="fu">head</span>(gwp_table_v2,<span class="dv">10</span>))</span>
+<span id="cb16-169"><a href="#cb16-169" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-170"><a href="#cb16-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-171"><a href="#cb16-171" aria-hidden="true" tabindex="-1"></a><span class="fu">### Writing to CSV</span></span>
+<span id="cb16-172"><a href="#cb16-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-173"><a href="#cb16-173" aria-hidden="true" tabindex="-1"></a>Now that the table is created, the dataframe is written as a CSV and saved for future use.</span>
+<span id="cb16-174"><a href="#cb16-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-175"><a href="#cb16-175" aria-hidden="true" tabindex="-1"></a><span class="in">```{r Writing to CSV}</span></span>
+<span id="cb16-176"><a href="#cb16-176" aria-hidden="true" tabindex="-1"></a><span class="fu">write_csv</span>(gwp_table_v2,<span class="st">&quot;gwp_table.csv&quot;</span>)</span>
+<span id="cb16-177"><a href="#cb16-177" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-178"><a href="#cb16-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-179"><a href="#cb16-179" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusion</span></span>
+<span id="cb16-180"><a href="#cb16-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-181"><a href="#cb16-181" aria-hidden="true" tabindex="-1"></a>This assignment was a challenge for me. I found it difficult to find a text file that I wanted to turn into a csv file. I first tried to scrap text from the web, but I wasn&#39;t able to complete this with the time restriction of the assignment. In the future, I would like to spend more time practicing scrapping data from the web.</span>
+<span id="cb16-182"><a href="#cb16-182" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-183"><a href="#cb16-183" aria-hidden="true" tabindex="-1"></a>After I decided turning the PDF into a table, I found working with a text file with no delimiter extremely challenging to work with in an algorithmic way. I spent a lot of time playing around this different regular expresses and counting white space to try and get the data in the table correctly with one algorithm. After spending a lot of time with this process and asking LLMs, I decided it would be easier to manually fix the 5 rows. I learned that when it comes to highly messy and unstructured data that sometimes it&#39;s easier to fix the data manually instead of in an algorithm.</span>
+<span id="cb16-184"><a href="#cb16-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-185"><a href="#cb16-185" aria-hidden="true" tabindex="-1"></a>In the future, I would like to spend more time working with unstructured text because it&#39;s great practice in working with messy data. In my work, I deal with a lot of utility bills which are very similar to the global warming potential PDF.</span>
+<span id="cb16-186"><a href="#cb16-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-187"><a href="#cb16-187" aria-hidden="true" tabindex="-1"></a><span class="fu">## Citations</span></span>
+<span id="cb16-188"><a href="#cb16-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-189"><a href="#cb16-189" aria-hidden="true" tabindex="-1"></a>Google. (2026). *Gemini* (Large language model) <span class="sc">\[</span>Computer software<span class="sc">\]</span>. <span class="co">[</span><span class="ot">https://gemini.google.com</span><span class="co">](https://gemini.google.com?utm_source=gemini)</span></span>
+<span id="cb16-190"><a href="#cb16-190" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-191"><a href="#cb16-191" aria-hidden="true" tabindex="-1"></a>World Resources Institute, &amp; World Business Council for Sustainable Development. (2016). *IPCC global warming potential values*. Greenhouse Gas Protocol. <span class="ot">&lt;https://ghgprotocol.org/sites/default/files/Global-Warming-Potential-Values%20%28Feb%2016%202016%29_1.pdf&gt;</span></span>
+<span id="cb16-192"><a href="#cb16-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-193"><a href="#cb16-193" aria-hidden="true" tabindex="-1"></a><span class="fu">### AI Usage Statement</span></span>
+<span id="cb16-194"><a href="#cb16-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-195"><a href="#cb16-195" aria-hidden="true" tabindex="-1"></a>For this assignment, I used Gemini&#39;s Fast-Lite Model for aiding with debugging code and for my second attempt of reading the txt file to a table. After using code from Gemini, I made sure to understand what I was given.</span>
+<span id="cb16-196"><a href="#cb16-196" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-197"><a href="#cb16-197" aria-hidden="true" tabindex="-1"></a><span class="fu">### </span></span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
