@@ -18,7 +18,17 @@ format:
 
 ## Introduction
 
+For this assignment, I will use the csv file from Project 1 to create an ELO function to calculate different player's ELO and compare their expected score to their actual score.
+
+I will graph the residuals to better understand how well did the expected score predict how the player would do. This will allow me to see if there are any outlier players in the tournament.
+
 ## Approach
+
+I did not choose the provided chess text file to turn into csv for Project 1, so I will be using Gemini to quickly turn the text file into a csv.
+
+After I get the csv file, I will load it into R and store it in this repository.
+
+I will take a functional approach for this assignment. I create an expected score function and compare this to the players actual score. Next, I will create different plots using `ggplot2` to see how well the expected value did at predicting the players score. I will not evaluate the formula, but see if players performed out of the ordinary.,
 
 ## Code
 

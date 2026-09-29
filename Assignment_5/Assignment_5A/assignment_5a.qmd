@@ -1,6 +1,7 @@
 ---
 title: "Data 607: Assignment 5A"
-author: "Airline Delays"
+subtitle: "Airline Delays"
+author: "Ellie Wilser"
 editor: visual
 format:
   html:
@@ -17,7 +18,25 @@ format:
 
 ## Introduction
 
+For this assignment, I will be comparing two airlines across 5 cities to help someone choose the best airline. Using the data provided, I recreated the screenshot of the table in Excel in order to read the data into R. The CSV is stored in the assignment Github repository.
+
+Using graphs and table, I will answer the following questions:
+
+1.  What airline should someone pick if they want to avoid delays overall?
+2.  Does this change city to city?
+3.  What airline should someone choice for each city to avoid delays?
+
+As well, I will give recommendations for further investigation.
+
 ## Approach
+
+I will start the assignment by loading in the CSV, and making the table tidy. The table is missing column names, had blank rows, and cells are missing. Before I pivot longer, I will first have to fix these errors.
+
+To pivot longer, I will use the `tidyr` function `pivot_longer()` to create an `airport` column. Currently, information is encoded in the column name which is not considered tidy.
+
+After the data is tidy, I will begin to answer the business questions above. I will use `ggplot2` to create different plots, and also create tables.
+
+Finally, I will recommend more ways airline data can be investigated to choose the best airline in order to avoid delays.
 
 ## Code
 

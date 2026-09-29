@@ -2248,9 +2248,14 @@ vertical-align: -.125em;
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>For this assignment, I will use the csv file from Project 1 to create an ELO function to calculate different player’s ELO and compare their expected score to their actual score.</p>
+<p>I will graph the residuals to better understand how well did the expected score predict how the player would do. This will allow me to see if there are any outlier players in the tournament.</p>
 </section>
 <section id="approach" class="level2">
 <h2 class="anchored" data-anchor-id="approach">Approach</h2>
+<p>I did not choose the provided chess text file to turn into csv for Project 1, so I will be using Gemini to quickly turn the text file into a csv.</p>
+<p>After I get the csv file, I will load it into R and store it in this repository.</p>
+<p>I will take a functional approach for this assignment. I create an expected score function and compare this to the players actual score. Next, I will create different plots using <code>ggplot2</code> to see how well the expected value did at predicting the players score. I will not evaluate the formula, but see if players performed out of the ordinary.</p>
 </section>
 <section id="code" class="level2">
 <h2 class="anchored" data-anchor-id="code">Code</h2>
@@ -2734,11 +2739,21 @@ vertical-align: -.125em;
 <span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a><span class="fu">## Introduction</span></span>
 <span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a><span class="fu">## Approach</span></span>
+<span id="cb1-21"><a href="#cb1-21" aria-hidden="true" tabindex="-1"></a>For this assignment, I will use the csv file from Project 1 to create an ELO function to calculate different player&#39;s ELO and compare their expected score to their actual score.</span>
 <span id="cb1-22"><a href="#cb1-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a><span class="fu">## Code</span></span>
+<span id="cb1-23"><a href="#cb1-23" aria-hidden="true" tabindex="-1"></a>I will graph the residuals to better understand how well did the expected score predict how the player would do. This will allow me to see if there are any outlier players in the tournament.</span>
 <span id="cb1-24"><a href="#cb1-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusion</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></div>
+<span id="cb1-25"><a href="#cb1-25" aria-hidden="true" tabindex="-1"></a><span class="fu">## Approach</span></span>
+<span id="cb1-26"><a href="#cb1-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-27"><a href="#cb1-27" aria-hidden="true" tabindex="-1"></a>I did not choose the provided chess text file to turn into csv for Project 1, so I will be using Gemini to quickly turn the text file into a csv.</span>
+<span id="cb1-28"><a href="#cb1-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-29"><a href="#cb1-29" aria-hidden="true" tabindex="-1"></a>After I get the csv file, I will load it into R and store it in this repository.</span>
+<span id="cb1-30"><a href="#cb1-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-31"><a href="#cb1-31" aria-hidden="true" tabindex="-1"></a>I will take a functional approach for this assignment. I create an expected score function and compare this to the players actual score. Next, I will create different plots using <span class="in">`ggplot2`</span> to see how well the expected value did at predicting the players score. I will not evaluate the formula, but see if players performed out of the ordinary.</span>
+<span id="cb1-32"><a href="#cb1-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-33"><a href="#cb1-33" aria-hidden="true" tabindex="-1"></a><span class="fu">## Code</span></span>
+<span id="cb1-34"><a href="#cb1-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-35"><a href="#cb1-35" aria-hidden="true" tabindex="-1"></a><span class="fu">## Conclusion</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal><i class="bi"></i></button></div>
 </div></div></div></div></div>
 </div> <!-- /content -->
 
