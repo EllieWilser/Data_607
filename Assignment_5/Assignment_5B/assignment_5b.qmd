@@ -1,0 +1,25 @@
+---
+title: "Data 607: Assignment 5B"
+subtitle: "ELO Calculations"
+author: "Ellie Wilser"
+editor: visual
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    code-summary: "Show code"
+    code-tools: true
+    df-print: paged
+    smooth-scroll: true
+    embed-resources: true
+---
+
+## Introduction
+
+## Approach
+
+## Code
+
+## Conclusion
