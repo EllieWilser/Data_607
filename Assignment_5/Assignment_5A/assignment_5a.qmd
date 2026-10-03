@@ -40,4 +40,169 @@ Finally, I will recommend more ways airline data can be investigated to choose t
 
 ## Code
 
-## Conclusion
+First, I loaded the necessary libraries for the assignment and the CSV that I created. I am testing out the `gt` library for formatting tables in Quarto documents. I'm excited to continue experimenting with this library!
+
+```{r Library and Loading Data}
+library(tidyr)
+library(dplyr)
+library(gt)
+library(ggplot2)
+```
+
+```{r Loading Data}
+url <- "https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_5/Assignment_5A/assignment_5a_data.csv"
+
+airline_untidy <- read.csv(url)
+
+airline_untidy %>%
+  gt() %>%
+  tab_header(
+    title = md("**Tidy Airline Data**")
+  )
+```
+
+### Data Cleaning and Tidying
+
+Before tidying the data, I needed to correct some mistakes in the CSV. The 3 row is empty and needs to be deleted. Also, the airline is missing from the 2nd and 4th row. I discovered here that deleting the 3rd row change the row index when called in later pipping.
+
+```{r Data Cleaning}
+airline_clean <- airline_untidy %>% 
+  slice(-3) %>%
+  mutate(X= if_else(row_number() == 2, "ALASKA", X)) %>%
+  mutate(X= if_else(row_number() == 4, "AM WEST", X)) %>%
+  rename(
+    airline = X,
+    status = X.1
+  )
+```
+
+Next, I used pivoted the data to turn the data table to longer from wider. I used the function `pivot_longer()` to turn the destination columns into a single column where the values is `total_flights.`
+
+```{r Tidying Data}
+airline_tidy <- airline_clean %>%
+  pivot_longer(
+    cols = c(Los.Angeles,Phoenix,San.Diego,San.Francisco,Seattle),
+    names_to = "destination",
+    values_to = "total_flights"
+  )
+```
+
+Displayed below is the tidy formatted data table.
+
+```{r Displaying Tidy Table}
+airline_tidy %>%
+  gt() %>%
+  tab_header(
+    title = md("**Tidy Airline Data**")
+  )
+```
+
+### Analyzing Data
+
+To compare the percent of delayed flights, I first started by creating two summary tables. The first table is stratified by destination, and the 2nd is just grouped by the airline.
+
+```{r Comparison Tables}
+
+destination_summary <- airline_tidy  %>%
+  group_by(airline, destination) %>%
+  summarise(
+    Total_Flights = sum(`total_flights`),
+    Delayed_Flights = sum(`total_flights`[status == "delayed"]),
+    Delay_Percentage = round((Delayed_Flights / Total_Flights) * 100, 2),
+    .groups = "drop"
+  )
+
+airline_summary <- airline_tidy  %>%
+  group_by(airline) %>%
+  summarise(
+    Total_Flights = sum(`total_flights`),
+    Delayed_Flights = sum(`total_flights`[status == "delayed"]),
+    Delay_Percentage = round((Delayed_Flights / Total_Flights) * 100, 2),
+    .groups = "drop"
+  )
+
+
+
+```
+
+```{r Displaying Summaries}
+destination_summary %>%
+  gt() %>%
+  tab_header(
+    title = md("**Destination Grouped Summary**")
+  )
+
+airline_summary %>%
+  gt() %>%
+  tab_header(
+    title = md("**Airline Grouped Summary**")
+  )
+```
+
+Next, I turned these tables into bar graphs with data labels. I had to play around with the `vjust` parameter, and I use a similar ggplot for both graphs for easy comparison.
+
+```{r Visualizations}
+
+ggplot(destination_summary, aes(x = destination, y = Delay_Percentage, fill = airline)) +
+  geom_col(position = "dodge", width = 0.7) +
+  geom_text(aes(label = paste0(Delay_Percentage, "%")), 
+            position = position_dodge(0.7), 
+            vjust = -0.5, size = 3) +
+  scale_fill_manual(values = c("ALASKA" = "#ffa600", "AM WEST" = "#58508d")) +
+  labs(
+    title = "Airline Delay Percentage by Destination City",
+    x = "Destination City",
+    y = "Delay Percentage (%)",
+    fill = "Airline"
+  ) +
+  theme_minimal() +
+  ylim(0, max(destination_summary$Delay_Percentage) + 5) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14)
+  )
+
+ggplot(airline_summary, aes(x = airline, y = Delay_Percentage, fill = airline)) +
+  geom_col(position = "dodge", width = 0.7) +
+  geom_text(aes(label = paste0(Delay_Percentage, "%")), 
+            position = position_dodge(0.7), 
+            vjust = -0.5, size = 3) +
+  scale_fill_manual(values = c("ALASKA" = "#ffa600", "AM WEST" = "#58508d")) +
+  labs(
+    title = "Airline Delay Percentage",,
+    x = "Destination City",
+    y = "Delay Percentage (%)",
+    fill = "Airline"
+  ) +
+  theme_minimal() +
+  ylim(0, max(destination_summary$Delay_Percentage) + 5) +
+  theme(
+    plot.title = element_text(face = "bold", size = 14)
+  )
+
+```
+
+## Conclusion and Business Questions
+
+After analyzing the data, it can be seen there is a discrepancy when comparing the percentage of delayed flights overall and by destination. When looking at the data by destination, AM WEST has a higher delayed flight percentage. However, overall Alaska Airlines has a higher airline rate. This is due to Simpson's paradox.
+
+In this data set, where you decide to fly has a high impact on if your flight is delayed. The reasons for Simpson paradox is when there is a third "hidden" variable there is heavily correlated with the measured value that skews the final combined number.
+
+It's best to look at the strata, so we can have an apples to apples comparison. That means Alaska airlines is the best to choose when looking to reduce the chance that your flight is delayed.
+
+Here are the answers to the business questions laid out in my approach:
+
+1.  **What airline should someone pick if they want to avoid delays overall?**
+
+    Even though AM West appeared to have a lower overall delay flight percentage, Alaska Airlines is the best choice creating an apples to apples comparison.
+
+2.  **Does this change city to city?**
+
+    No, Alaska airlines had the lowest delay flight percentage for every city.
+
+3.  **What airline should someone choice for each city to avoid delays?**
+
+    The graph above shows for every city the best choice is Alaska Airlines to avoid delays.
+
+### Recommendations for Future Investigation
+
+This example of Simpson's paradox was a great exercise for under the why behind it. However, I think this will come up in my work, but I won't have the correlated variable pulled out for me. Simpson's paradox teaches me that I have to think about what are potentials strata that could be affect my data comparisons.
