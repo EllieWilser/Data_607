@@ -142,7 +142,6 @@ airline_summary %>%
 Next, I turned these tables into bar graphs with data labels. I had to play around with the `vjust` parameter, and I use a similar ggplot for both graphs for easy comparison.
 
 ```{r Visualizations}
-
 ggplot(destination_summary, aes(x = destination, y = Delay_Percentage, fill = airline)) +
   geom_col(position = "dodge", width = 0.7) +
   geom_text(aes(label = paste0(Delay_Percentage, "%")), 
@@ -185,7 +184,7 @@ ggplot(airline_summary, aes(x = airline, y = Delay_Percentage, fill = airline)) 
 
 After analyzing the data, it can be seen there is a discrepancy when comparing the percentage of delayed flights overall and by destination. When looking at the data by destination, AM WEST has a higher delayed flight percentage. However, overall Alaska Airlines has a higher airline rate. This is due to Simpson's paradox.
 
-In this data set, where you decide to fly has a high impact on if your flight is delayed. The reasons for Simpson paradox is when there is a third "hidden" variable there is heavily correlated with the measured value that skews the final combined number.
+In this data set, where you decide to fly has a high impact on if your flight is delayed. The reasons for Simpson paradox is when there is a third "hidden" variable that is heavily correlated with the measured value that skews the final combined number.
 
 It's best to look at the strata, so we can have an apples to apples comparison. That means Alaska airlines is the best to choose when looking to reduce the chance that your flight is delayed.
 

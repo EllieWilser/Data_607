@@ -28,8 +28,147 @@ I did not choose the provided chess text file to turn into csv for Project 1, so
 
 After I get the csv file, I will load it into R and store it in this repository.
 
-I will take a functional approach for this assignment. I create an expected score function and compare this to the players actual score. Next, I will create different plots using `ggplot2` to see how well the expected value did at predicting the players score. I will not evaluate the formula, but see if players performed out of the ordinary.,
+I will take a functional approach for this assignment. I create an expected score function and compare this to the players actual score. Next, I will create different plots using `ggplot2` to see how well the expected value did at predicting the players score. I will not evaluate the formula, but see if players performed out of the ordinary.
 
 ## Code
 
+I tried using Gemini to turn the text file into a csv, but I found using Excel and doing the reformatting much easier.
+
+### Loading Library and Data
+
+```{r Library}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(gt)
+library(tidyverse)
+```
+
+```{r Loading Data}
+url <- "https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_5/Assignment_5B/chess_tournament.csv"
+
+chess_raw <- read.csv(url)
+
+names(chess_raw)
+```
+
+### Tidying Data
+
+In order to tidy this data, I need to separate the player information from the different matches, and then pivot match the table to be long format. This was very straight forward with the players summary because it's just cleaning the rating column and then selecting the needed columns. Pivoting the match was more difficult and required some research.
+
+I looked up a few examples of using pivot longer with multiple columns which helped me figure out how to turn the raw data into a tidy format. I selected columns using the `starts_with()` functions to get the columns that have variables encoded in the name.
+
+I used the `names_to` and `names_pattern` parameters to create the columns "Opponent", "Player_Color", "Results" and another column that represents the different round numbers. The pattern uses the naming convention I used when turning the text file into a csv. All text in the untidy columns before "Round" is gets turned into a value column and text after is the different round number. This was great practice for me and helped me better understand how important tidying data is!
+
+```{r Tidying and Subsetting}
+players_lookup <- chess_raw %>%
+  mutate(
+    # Turning rating into numeric and extracting only the leading digits
+    pre.rating.clean = as.numeric(str_extract(Pre.Rating, "^\\d+")) 
+  ) %>%
+  select(Pair, Player.Name, pre.rating.clean)
+
+matches_long <- chess_raw %>%
+  mutate(pre.rating.clean = as.numeric(str_extract(Pre.Rating, "^\\d+"))) %>%
+  pivot_longer(
+    cols = c(starts_with("Results_Round_"), starts_with("Opponet_Round_"), starts_with("Player_Color_Round_")),
+    names_to = c(".value", "Round_Num"),
+    names_pattern = "(.*)_Round_(.*)"
+  ) %>%
+  rename(
+    Match_Result = Results,
+    Opponent_Pair = Opponet
+  )
+```
+
+### Defining Function
+
+I decided to take a functional approach to assignment, and used the elo formula found on [GeeksforGeeks](https://www.geeksforgeeks.org/dsa/elo-rating-algorithm/). I did not update ratings as this has been done already.
+
+```{r Defining Function}
+calc_elo <- function(rating_a,rating_b) {
+  1 / (1 + 10^((rating_b - rating_a) / 400))
+}
+```
+
+### Implementation and Analysis
+
+For implementing the function, I brought in the opponents data into my match and then calculated the expected ELO score, as well as, added in the actual game score. I had to do some research on what the different letters in the results column meant.
+
+For the player summary, I added together all the actual scores and ELO scores to get the overall scores for the tournament. Then I took the different to get a better understanding of the under and over performers for the tournament.
+
+```{r Implementing Function}
+match_analysis <- matches_long %>%
+  left_join(players_lookup, by = c("Opponent_Pair" = "Pair"), suffix = c("", "_Opp")) %>%
+  mutate(
+    expected_game_score = calc_elo(pre.rating.clean, pre.rating.clean_Opp),
+    actual_game_score = case_when(
+      Match_Result == "W" ~ 1.0,
+      Match_Result %in% c("D","H") ~ 0.5,
+      Match_Result %in% c("L","U") ~ 0 )
+      
+    )
+
+
+player_summary <- match_analysis %>%
+  group_by(Pair, Player.Name, pre.rating.clean, Total.Pts) %>%
+  summarize(
+    calculated_actual = sum(actual_game_score, na.rm = TRUE),
+    expected_score = sum(expected_game_score, na.rm = TRUE),
+    score_diff = calculated_actual - expected_score,
+    .groups = "drop"
+  )
+```
+
+### Graphing
+
+I created two graphs to answer the business questions for the assignment. The five overperformers and underperformers can be seen in the second graphs. The first graphs shows most players performed as expected and are close to the 1:1 line.
+
+For this graphs, I used a the [r graph gallery](https://r-graph-gallery.com/) as a reference and used gemini lite when I got stuck a few time.
+
+```{r Graphing}
+ggplot(player_summary, aes(x = expected_score, y = calculated_actual)) +
+  geom_point(aes(color = score_diff), size = 3, alpha = 0.8) +
+  # 1:1 Line for Reference
+  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray50") +
+  scale_color_gradient2(low = "red", mid = "gray80", high = "blue", midpoint = 0) +
+  labs(
+    title = "Chess Tournament Performance: Actual vs. Expected Scores",
+    color = "Performance Diff"
+  ) +
+  theme_minimal()
+```
+
+```{r Over and Under Performers}
+over_under_players <- player_summary %>%
+  mutate(rank = rank(score_diff)) %>%
+  mutate(category = case_when(
+    rank <= 5 ~ "Underperformer",
+    rank >= max(rank)-5 ~ "Overperformer"
+  )) %>%
+  filter(rank <= 5 | rank >= max(rank)-5)
+
+ggplot(over_under_players, aes(x = reorder(Player.Name, score_diff), y = score_diff, fill = category)) +
+  geom_col(show.legend = FALSE) +
+  coord_flip() +
+  facet_wrap(~category, scales = "free_y") +
+  labs(
+    x = "Player Name",
+    y = "Score Difference (Actual - Expected)"
+  ) +
+  theme_minimal()
+
+
+```
+
 ## Conclusion
+
+In this assignment, I got practice tidying a very messy data file, implementing ELO scoring and creating graphs in ggplot. I enjoyed the practice I got with pivoting a complex data file, as well as creating the different plots. For future investigations, I'd recommend implementing ELO ratings for another competition and predicting the outcomes before games happen.
+
+### AI Usage
+
+For this assignment, I used Gemini lite-fast version to create an initial csv file from txt file, and to create examples of code when I got stuck in the assignment.
+
+### References
+
+Google. (2026). *Gemini* (Large language model) \[Computer software\]. [https://gemini.google.com](https://gemini.google.com?utm_source=gemini)
