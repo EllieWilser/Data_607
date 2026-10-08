@@ -1,0 +1,74 @@
+---
+title: "Data 607: Project 2"
+author: "Ellie Wilser"
+editor: visual
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    code-summary: "Show code"
+    code-tools: true
+    df-print: paged
+    smooth-scroll: true
+    embed-resources: true
+---
+
+## Introduction
+
+For this Project, I will be tidying three different data sources.
+
+- WHO Tuberculosis Cases
+  - This dataset is built directly into the tidyr package and it is a great example of where column names are encoded with data values.
+- World Bank Labor Data
+  - I used the World Bank's "[DataBank](https://databank.worldbank.org/source/jobs/Type/TABLE/preview/on#)" tool to download multiple labor statistics about different countries.
+- Wikipedia List of Countries by Electricity Production
+  - This data source is a list of energy production by country, and will give me great practice in scrapping an HTML table from the web.
+
+## Approach
+
+### WHO Tuberculosis Cases
+
+This dataset is a classic example of a dataset that needs to be tidy. I will have to turn the column names into values, and then do some basic exploratory data analysis.
+
+### World Bank Labor Data
+
+In this dataset, I will need to turn the year columns into one with year values. As well, I will need to make separate tables for countries, series, and wage data points. This is to make the tables normalized.
+
+### Wikipedia List of Countries by Electricity Production
+
+This dataset will be the most complicated because it was read directly from Wikipedia and has some errors. I will need to turn the energy production methods into one column, and have another column to keep the renewable / fossil fuel hierarchy.
+
+## Code
+
+```{R Libraries}
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+library(rvest)
+```
+
+Below I loaded the data sets I will be analyzing. The WHO and wage stats data were easily to load, but I was able to practice web strapping with the Wikipedia data. I used the rvest library, and read the all the HMTL tables to a vector in R. I knew from the website that I wanted the first table, so I pulled out the table at position 1.
+
+```{R Loading Data}
+
+#Dataset 1
+who_data <- who
+
+#Dataset 2
+wage_data <- read.csv("wage_stats.csv")
+
+#Dataset 3
+url <- "https://en.wikipedia.org/wiki/List_of_countries_by_electricity_production"
+
+tables <- url |>
+  read_html() |>
+  html_table(fill=TRUE)
+
+electricity_data <- tables[[1]]
+
+write.csv(electricity_data,"wiki_prod_electricity.csv")
+```
+
+## Conclusion
