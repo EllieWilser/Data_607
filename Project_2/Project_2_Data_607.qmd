@@ -40,35 +40,248 @@ In this dataset, I will need to turn the year columns into one with year values.
 
 This dataset will be the most complicated because it was read directly from Wikipedia and has some errors. I will need to turn the energy production methods into one column, and have another column to keep the renewable / fossil fuel hierarchy.
 
-## Code
 
-```{R Libraries}
+
+```{R Libraries,message=FALSE}
 library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(rvest)
+library(gt)
+library(janitor)
+library(dm)
+library(DiagrammeR)
+library(stringr)
 ```
+
+## Dataset 1
 
 Below I loaded the data sets I will be analyzing. The WHO and wage stats data were easily to load, but I was able to practice web strapping with the Wikipedia data. I used the rvest library, and read the all the HMTL tables to a vector in R. I knew from the website that I wanted the first table, so I pulled out the table at position 1.
 
-```{R Loading Data}
-
-#Dataset 1
+### Loading
+```{R Loading Dataset 1}
 who_data <- who
 
-#Dataset 2
+who |>
+  head(5) |>
+  gt() |>
+  tab_header(
+    title = md("**Raw WHO Tuberculosis Report**"),
+    subtitle = "First 5 Lines and Column Subset"
+  ) |>
+  opt_align_table_header(align = "left") |>
+  sub_missing(
+    columns = everything(),
+    missing_text = "—"
+  )
+```
+
+### Cleaning
+
+```{R Tidying Dataset 1}
+who_tidy <- who_data |>
+  pivot_longer(
+    cols = !(country:year), #Keeping country, iso2, iso3, and year as identifier columns
+    names_to = c("diagnosis","gender","age"),
+    names_pattern = "^(.*)_(m|f)(.*)$",
+    values_to="cases",
+    values_drop_na = TRUE
+  ) |>
+  clean_names()
+
+who_tidy
+```
+
+### Database
+
+```{R Normalizing Dataset 1}
+countries_lookup <- who_tidy |>
+  select(country,iso2,iso3)|>
+  distinct()
+
+tb_cases_table <- who_tidy |>
+  select(iso3, year, diagnosis, gender, age, cases)
+```
+
+```{mermaid}
+erDiagram
+    COUNTRIES {
+        string iso3 PK
+        string country
+        string iso2
+    }
+    TB_CASES {
+        string iso3 FK
+        int year
+        string diagnosis
+        string gender
+        string age
+        int cases
+    }
+    COUNTRIES ||--o{ TB_CASES : contains
+```
+
+## Dataset 2
+
+### Loading 
+
+```{R Loading Dataset 2}
 wage_data <- read.csv("wage_stats.csv")
 
-#Dataset 3
+wage_data |>
+  head(5) |>
+  gt() |>
+  tab_header(
+    title = md("**Raw Global Labor Statistics**"),
+    subtitle = "First 5 Lines and Column Subset"
+  ) |>
+  opt_align_table_header(align = "left") |>
+  sub_missing(
+    columns = everything(),
+    missing_text = "—"
+  )
+```
+
+### Tidying
+
+```{r Tidying Dataset 2}
+
+wage_tidy <- wage_data |>
+  pivot_longer(
+    cols = starts_with("X"),
+    names_to = "year_raw",
+    values_to = "value"
+  ) |>
+  mutate(
+    year = as.integer(str_extract(year_raw,"\\d{4}")),
+  ) |>
+  clean_names()
+```
+
+### Database
+
+```{R Dataset 2 in Normal Form}
+
+wage_countries <- wage_tidy |>
+  select(country_name,country_code) |>
+  distinct()
+
+wage_series <- wage_tidy |>
+  select(series_code, series_name) |>
+  distinct()
+
+wage_obs <- wage_tidy |>
+  select(country_code,series_code,year,value)
+
+
+
+```
+
+```{mermaid}
+erDiagram
+    COUNTRIES {
+        string Country_Code PK
+        string Country_Name
+    }
+
+    SERIES {
+        string Series_Code PK
+        string Series_Name
+    }
+
+    OBS {
+        string Country_Code FK 
+        string Series_Code FK
+        int year
+        float value
+    }
+    COUNTRIES ||--o{ OBS : contains
+    SERIES ||--o{ OBS : categorizes
+```
+
+## Dataset 3
+
+### Loading
+
+```{R Loading Dataset 3, message=FALSE}
 url <- "https://en.wikipedia.org/wiki/List_of_countries_by_electricity_production"
 
 tables <- url |>
   read_html() |>
   html_table(fill=TRUE)
 
-electricity_data <- tables[[1]]
+electricity_data <- tables[[1]] |>
+  row_to_names(row_number = 1) |>
+  clean_names()
 
-write.csv(electricity_data,"wiki_prod_electricity.csv")
+electricity_data |>
+  head(5) |>
+  gt() |>
+  tab_header(
+    title = md("**Raw Electricity Production by Country**"),
+    subtitle = "First 5 Lines and Column Subset"
+  ) |>
+  opt_align_table_header(align = "left") |>
+  sub_missing(
+    columns = everything(),
+    missing_text = "—"
+  )
+```
+
+### Tidying
+
+```{R Tidying Dataset 3}
+
+electric_tidy <- electricity_data |>
+  select(-total_t_wh) |>
+  rename(
+    other_fossil = other ,
+    other_renew = other_2 ,
+    nuclear = nuclear_t_wh
+  ) |>
+  pivot_longer(
+    cols = -c(location,year),
+    names_to = "generation_type",
+    values_to = "t_wh"
+  ) |>
+  mutate(
+    classification = case_when(
+    generation_type %in% c("coal","gas", "other_fossil") ~ "fossil",
+    generation_type %in% ("nuclear") ~ "nuclear",
+    generation_type %in% c("hydro", "wind","solar","bio","other_renew") ~ "renewable"
+    )
+    
+  )
+```
+
+### Database
+
+```{R Normal Form}
+
+observed_electric <- electric_tidy |>
+  select(-classification)
+
+generation_types <- electric_tidy |>
+  select(c(generation_type,classification)) |>
+  distinct()
+
+```
+
+```{mermaid}
+erDiagram
+    OBS_ELECTRIC {
+        string location 
+        int year 
+        string generation_type FK
+        float t_wh
+    }
+    
+    GENERATION_TYPES {
+      string generation_type PK
+      string classification
+    
+    }
+    GENERATION_TYPES ||--o{ OBS_ELECTRIC : describes
 ```
 
 ## Conclusion
