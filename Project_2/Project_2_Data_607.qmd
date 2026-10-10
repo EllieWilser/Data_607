@@ -1,18 +1,29 @@
 ---
 title: "Data 607: Project 2"
 author: "Ellie Wilser"
-editor: visual
+date: today
 format:
   html:
-    theme: cosmo
+    theme:
+      light: cosmo
+      dark: darkly
     toc: true
     toc-location: left
     toc-depth: 3
-    code-summary: "Show code"
-    code-tools: true
-    df-print: paged
+    number-sections: true
     smooth-scroll: true
+    code-summary: "Show code"
+    code-overflow: wrap
+    df-print: paged
+    anchor-sections: true
+    fig-align: center
+    fig-width: 8
+    fig-height: 5
     embed-resources: true
+    css: styles.css
+execute:
+  warning: false
+  message: false
 ---
 
 ## Introduction
@@ -24,7 +35,7 @@ For this Project, I will be tidying three different data sources.
 - World Bank Labor Data
   - I used the World Bank's "[DataBank](https://databank.worldbank.org/source/jobs/Type/TABLE/preview/on#)" tool to download multiple labor statistics about different countries.
 - Wikipedia List of Countries by Electricity Production
-  - This data source is a list of energy production by country, and will give me great practice in scrapping an HTML table from the web.
+  - This data source is a list of energy production by country, and will give me great practice in scraping from the web.
 
 ## Approach
 
@@ -34,31 +45,60 @@ This dataset is a classic example of a dataset that needs to be tidy. I will hav
 
 ### World Bank Labor Data
 
-In this dataset, I will need to turn the year columns into one with year values. As well, I will need to make separate tables for countries, series, and wage data points. This is to make the tables normalized.
+In this dataset, I will need to turn the year columns into one with year values. As well, I will need to make separate tables for countries, vulnerable employment, and wage and salary workers. This is to make the tables normalized.
 
 ### Wikipedia List of Countries by Electricity Production
 
 This dataset will be the most complicated because it was read directly from Wikipedia and has some errors. I will need to turn the energy production methods into one column, and have another column to keep the renewable / fossil fuel hierarchy.
 
-
-
 ```{R Libraries,message=FALSE}
+
+# General R Libraries
 library(tidyr)
 library(dplyr)
 library(ggplot2)
-library(rvest)
-library(gt)
-library(janitor)
-library(dm)
-library(DiagrammeR)
 library(stringr)
+
+# Webscrapping
+library(rvest)
+
+# Visualizing Tables
+library(gt)
+
+# Cleaning
+library(janitor)
+
+# Connecting to Postgres
+library(DBI)
+library(RPostgres)
+
+# Plotting
+library(ggrepel)
+library(scales)
+```
+
+```{r Database-Setup}
+con <- dbConnect(
+  RPostgres::Postgres(),
+  dbname   = "project_2_wilser",
+  user     = "postgres"
+)
+```
+
+```         
 ```
 
 ## Dataset 1
 
-Below I loaded the data sets I will be analyzing. The WHO and wage stats data were easily to load, but I was able to practice web strapping with the Wikipedia data. I used the rvest library, and read the all the HMTL tables to a vector in R. I knew from the website that I wanted the first table, so I pulled out the table at position 1.
+The first dataset I am analyzing is the WHO Tuberculosis Cases. This dataset has total tuberculosis cases by year and by country. After tidying and creating a database, I will answer the following business questions:
+
+1.  What has the overall trend in tuberculosis cases been since 1995?
+2.  Was there a peak?
 
 ### Loading
+
+I started by loading the dataset from tidyverse, and then creating a table using the gt library. In the table, you can see how untidy the data is with many values encoding in the column names.
+
 ```{R Loading Dataset 1}
 who_data <- who
 
@@ -66,8 +106,8 @@ who |>
   head(5) |>
   gt() |>
   tab_header(
-    title = md("**Raw WHO Tuberculosis Report**"),
-    subtitle = "First 5 Lines and Column Subset"
+    title = md("**Raw** WHO Tuberculosis Report"),
+    subtitle = "First 5 Lines"
   ) |>
   opt_align_table_header(align = "left") |>
   sub_missing(
@@ -78,52 +118,225 @@ who |>
 
 ### Cleaning
 
+I used the pivot longer function to tidy the dataset. I used the parameter names_pattern to pull the variables out of the column names. Lastly, I used the clean_names() function from the janitor package to turn all the column names to snake case. I saw another classmate used this package, and I thought it was very useful.
+
 ```{R Tidying Dataset 1}
 who_tidy <- who_data |>
   pivot_longer(
-    cols = !(country:year), #Keeping country, iso2, iso3, and year as identifier columns
-    names_to = c("diagnosis","gender","age"),
+    cols = !(country:year),
+    names_to = c("diagnosis", "gender", "age"),
     names_pattern = "^(.*)_(m|f)(.*)$",
-    values_to="cases",
+    values_to = "cases",
     values_drop_na = TRUE
   ) |>
+  mutate(
+    age = recode(age,
+                 "014"  = "0-14",
+                 "1524" = "15-24",
+                 "2534" = "25-34",
+                 "3544" = "35-44",
+                 "4554" = "45-54",
+                 "5564" = "55-64",
+                 "65"   = "65+"
+    ),
+    age = factor(age, levels = c("0-14", "15-24", "25-34", "35-44",
+                                 "45-54", "55-64", "65+"))
+  ) |>
   clean_names()
+```
 
-who_tidy
+```{r Displaying Tidy Dataset 1}
+who_tidy |>
+  head(5) |>
+  gt() |>
+  tab_header(
+    title = md("**Tidy** WHO Tuberculosis Report"),
+    subtitle = "First 5 Lines"
+  ) |>
+  opt_align_table_header(align = "left") |>
+  sub_missing(
+    columns = everything(),
+    missing_text = "—"
+  )
+```
+
+With the WHO data, some countries did not report their cases until later. I will filter to only include countries that reported every year between 1995 and 2012. As well, there was a big jump in reporting countries starting in 1995, so I filtered from 1995 to 2012. I close 2012 because I wasn't sure if 2013 was a full year of reported cases.
+
+```{r Complete Countries}
+complete_countries <- who_tidy |>
+  filter(between(year, 1995, 2012), !is.na(cases)) |>
+  summarise(n_years = n_distinct(year), .by = iso3) |>
+  filter(n_years == (2012-1995+1)) |>
+  pull(iso3)
+
+who_consistent <- who_tidy |>
+  filter(iso3 %in% complete_countries, between(year, 1995, 2012))
 ```
 
 ### Database
 
+The data table created above is ready for analysis, but when storing the data it does not meet the first 3 normal forms to be considered normalized. In order to normalize the data set, I need to create a separate table for countries that can be used to look up full country names. iso3 will be used as the primary key in this table. Then the tb case table will have case counts by age, gender, diagnosis, and iso3.
+
 ```{R Normalizing Dataset 1}
-countries_lookup <- who_tidy |>
+
+country_lookup <- who_consistent |>
   select(country,iso2,iso3)|>
   distinct()
 
-tb_cases_table <- who_tidy |>
+tb_cases_table <- who_consistent |>
   select(iso3, year, diagnosis, gender, age, cases)
+
 ```
 
+I loaded the normalized tables into my database, to practice basic SQL. I dropped the tables if they exist before creating the schema to avoid errors.
+
+```{sql connection=con}
+DROP TABLE IF EXISTS tb_cases_table;
+```
+
+```{sql connection=con}
+DROP TABLE IF EXISTS country_lookup;
+```
+
+With the tb cases table, I wanted a primary key to avoid duplicating rows. I decided to use the set of all columns besides cases, this set is unique in the table and is the smallest unique set.
+
+```{sql connection=con}
+CREATE TABLE country_lookup(
+        country TEXT,
+        iso2    TEXT,
+        iso3    TEXT,
+        PRIMARY KEY (iso3)
+  )
+```
+
+```{sql connection=con}
+CREATE TABLE tb_cases_table (
+    iso3       TEXT NOT NULL REFERENCES country_lookup(iso3),
+    year       INTEGER NOT NULL,
+    diagnosis  TEXT NOT NULL,
+    gender     TEXT NOT NULL,
+    age        TEXT NOT NULL,
+    cases      INTEGER,
+    PRIMARY KEY (iso3, year, diagnosis, gender, age)
+    )
+```
+
+```{r Adding to DB}
+dbWriteTable(con, "country_lookup", country_lookup, append=TRUE)
+dbWriteTable(con, "tb_cases_table", tb_cases_table, append=TRUE)
+```
+
+I wanted to create diagrams for my databases in R, and Claude recommended using the mermaid chunks. I was surprised how easy it was to draw ERD diagrams directly in R. The syntax used in the Mermaid chunk is standard in database design, so it was nice not have to memorize a new syntax!
+
 ```{mermaid}
+---
+title: TB Cases Database Design
+config:
+  theme: neutral
+  look: classic
+---
 erDiagram
-    COUNTRIES {
-        string iso3 PK
+    country_lookup {
+        string iso3 PK "ISO 3-letter country code"
         string country
-        string iso2
+        string iso2 "ISO 2-letter country code"
     }
-    TB_CASES {
-        string iso3 FK
-        int year
-        string diagnosis
-        string gender
-        string age
+
+    tb_cases_table {
+        string iso3 PK, FK
+        int year PK
+        string diagnosis PK
+        string gender PK
+        string age PK
         int cases
     }
-    COUNTRIES ||--o{ TB_CASES : contains
+
+    country_lookup ||--o{ tb_cases_table : "reports"
+    
 ```
+
+### Analysis
+
+To answer the business questions, I want to create graphs using ggplot. To simplify the graphs, I decided to only look at new cases of TB. I had to prepare some dataframes for the visualizations. First I created yearly_country which sums the new cases by country by year. Next, yearly does this as well but only by year. top5 is the top 5 countries with the highest number of TB cases overall. This will be used when looking at what countries have the highest number of tb cases. Finally, I found the peak using the slice_max function again.
+
+I explored using palettes to set colors in ggplot visualizations. I used the Dark2 color palette for my second visualization.
+
+```{r Visualization Prep Dataset 1}
+
+yearly_country <- who_consistent |>
+  summarise(cases = sum(cases), .by = c(country, year))
+
+yearly <- yearly_country |>
+  summarise(cases = sum(cases), .by = year)
+
+top5 <- yearly_country |>
+  summarise(total = sum(cases), .by = country) |>
+  slice_max(total, n = 5) |>
+  pull(country)
+
+peak <- slice_max(yearly, cases, n = 1)
+
+pal <- setNames(RColorBrewer::brewer.pal(5, "Dark2"), top5)
+```
+
+In the past, I've struggled adding text to plots, so I did some research and found the ggrepel library which makes this a lot easier. The package has a function geom_label_repel which gives more options for data labels
+
+```{r Overall Trend}
+
+ggplot(yearly, aes(year, cases)) +
+  geom_area(fill = "#2C7FB8", alpha = 0.15) +
+  geom_line(colour = "#2C7FB8", linewidth = 1.1) +
+  geom_point(data = peak, colour = "#D95F0E", size = 3.5) +
+  geom_label_repel(
+    data = peak,
+    aes(label = paste0("Peak: ", comma(cases), " (", year, ")")),
+    colour = "#D95F0E",
+    fill = "white",
+    nudge_y = 0.08 * max(yearly$cases), # Moves the label above the max
+  ) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) + # Expanes to fit label
+
+  labs(title = "Reported TB cases, 1995-2012",
+       subtitle = "New cases for all countries that reported all years between 1995-2012",
+       x = NULL, y = "Cases")
+
+```
+
+This graph shows that the peak of new cases happened in 2007.
+
+However, this is just for countries that have been reporting since 1995. Some countries that recently started reporting have been left out.
+
+For this next visualization, I wanted to try piping data directly to ggplot to avoid creating visualization dataframes I wouldn't need anywhere else.
+
+```{r Trend with Top 10 Countries}
+yearly_country |>
+  filter(country %in% top5) |>
+  mutate(country = factor(country, levels = top5)) |>
+  ggplot(aes(year, cases, colour = country)) +
+  geom_line(linewidth = 1.2) +
+  scale_colour_manual(values = pal) +
+  scale_x_continuous(breaks = seq(1995, 2012, by = 2)) +
+  labs(
+    title    = "New TB cases over time: The Top 5 Countries",
+    subtitle = "Top 5 by total reported cases, 1995-2012",
+    x = NULL, y = "Cases", colour = NULL
+  ) +
+  theme(legend.position = "top")
+```
+
+This graph shows that India and China by far have the most cases of TB. Further investigation could look at percent population that has TB.
 
 ## Dataset 2
 
-### Loading 
+The next dataset I will be using is from the World Data Bank and is different labor statistics. The labor statistics are percent of wage and salaried workers by gender, and percent of vulnerable employment by gender. The business questions I will answer with graphs are the following:
+
+1.  How has the percent of people that are wage and salaries workers changed?
+2.  Is this the same trend with vulnerable employment?
+3.  Does gender affect this trend?
+
+### Loading Data
+
+The wage statistics I used I download from The World Bank. They have many different data set relating to labor, hunger, environment and more. Below I displayed the first 5 lines of the raw data set:
 
 ```{R Loading Dataset 2}
 wage_data <- read.csv("wage_stats.csv")
@@ -144,66 +357,222 @@ wage_data |>
 
 ### Tidying
 
-```{r Tidying Dataset 2}
+For tidying I decided to separate the 2 different statistics, vulnerable employment and percent employment, into separate tables.
 
-wage_tidy <- wage_data |>
+First I cleaned the employment table. I had to do a lot of cleaning after using pivot longer. First, I cleaned the year column by taking the last 4 digits of each cell. Next, I separated the female, male and total designations in the series name to be a separate column. Finally, I removed unnecessary rows and then moved the columns around.
+
+```{r Tidying Dataset 2 Employment Table}
+
+# Employment Table
+wage_salary_tidy <- wage_data |>
   pivot_longer(
     cols = starts_with("X"),
     names_to = "year_raw",
-    values_to = "value"
+    values_to = "wage_percent"
   ) |>
   mutate(
     year = as.integer(str_extract(year_raw,"\\d{4}")),
   ) |>
-  clean_names()
+  clean_names() |>
+  filter(str_detect(series_name, "^Wage and salaried workers")) |>
+  mutate(sex = case_when(
+    str_detect(series_name, "female") ~ "female",
+    str_detect(series_name, "male")   ~ "male",
+    str_detect(series_name, "total")  ~ "both"
+  )) |>
+  select(-c(series_name,year_raw,series_code)) |>
+  relocate(year, .after = country_code) |>
+  relocate(sex, .after = year)
+
+wage_salary_tidy |>
+  head(5) |>
+  gt() |>
+  tab_header(title = "Percent of Wage Workers")
+```
+
+I did the same data tidying and cleaning for the vulnerable employment table
+
+```{r Tidying Dataset 2 Vulnerable Table}
+vulnerable_tidy <- wage_data |>  
+  pivot_longer(
+    cols = starts_with("X"),
+    names_to = "year_raw",
+    values_to = "Vulnerable Employment %"
+  ) |>
+  mutate(
+    year = as.integer(str_extract(year_raw,"\\d{4}")),
+  ) |>
+  clean_names() |>
+  filter(str_detect(series_name, "^Vulnerable employment")) |>
+  mutate(sex = case_when(
+    str_detect(series_name, "female") ~ "female",
+    str_detect(series_name, "male")   ~ "male",
+    str_detect(series_name, "total")  ~ "both"
+  )) |>
+  select(-c(series_name,year_raw,series_code)) |>
+  relocate(year, .after = country_code) |>
+  relocate(sex, .after = year)
+
+# Display Table
+
+vulnerable_tidy |>
+  head(5) |>
+  gt() |>
+  tab_header(title="Percent of Vulnerable Employment")
 ```
 
 ### Database
 
+Next, I separated the tables into normal form to store them into a database. The tidy tables will be used in analysis, but the normal form is the proper way to store in a database. Similar to the first dataset, countries had to be separated from the other tables.
+
 ```{R Dataset 2 in Normal Form}
 
-wage_countries <- wage_tidy |>
-  select(country_name,country_code) |>
+countries_norm <- wage_data |>
+  select(country_code = Country.Code, country_name = Country.Name) |>
+  filter(!is.na(country_code), country_code != "") |>
   distinct()
 
-wage_series <- wage_tidy |>
-  select(series_code, series_name) |>
-  distinct()
+vulnerable_norm <- vulnerable_tidy |>
+  select(-c(country_name))
 
-wage_obs <- wage_tidy |>
-  select(country_code,series_code,year,value)
+wage_norm <- wage_salary_tidy |>
+  select(-c(country_name))
 
-
-
+countries_norm
 ```
+
+Before writing the SQL statements and loading the data, I planned out the ERD.
 
 ```{mermaid}
+---
+title: Labor Statistics Database Design
+config:
+  theme: neutral
+  look: classic
+---
 erDiagram
-    COUNTRIES {
-        string Country_Code PK
-        string Country_Name
+    countries {
+        string country_code PK
+        string country_name
     }
-
-    SERIES {
-        string Series_Code PK
-        string Series_Name
+    
+    vulnerable_employ {
+        string country_code FK, PK
+        int year PK
+        string sex PK
+        float vulnerable_employment_percent
     }
-
-    OBS {
-        string Country_Code FK 
-        string Series_Code FK
-        int year
-        float value
+    
+    wage {
+        string country_code FK, PK
+        int year PK
+        string sex PK
+        float wage_percent
     }
-    COUNTRIES ||--o{ OBS : contains
-    SERIES ||--o{ OBS : categorizes
+    
+    countries ||--o{ vulnerable_employ : has
+    countries ||--o{ wage : has
 ```
+
+### Loading in Postgres
+
+After planning out the ERD, I loaded the data into Postgres, so I can query the database with SQL.
+
+First I dropped the tables if they exist to avoid errors when rendering the document. I had to drop the countries table last because it is the parent table with the employment tables containing foreign keys.
+
+```{sql connection=con}
+DROP TABLE IF EXISTS vulnerable_employ, wage, countries;
+```
+
+Next, I created the tables using the ERD from above. I made sure that sex column in the employment tables is only the 3 possible values.
+
+```{sql, connection=con}
+CREATE TABLE countries (
+  country_code  TEXT PRIMARY KEY,
+  country_name  TEXT NOT NULL
+);
+```
+
+```{sql connection=con}
+CREATE TABLE vulnerable_employ (
+  country_code     TEXT NOT NULL REFERENCES countries(country_code),
+  year            INTEGER NOT NULL,
+  sex             TEXT NOT NULL CHECK (sex IN ('female', 'male', 'both')),
+  vulnerable_employment_percent DOUBLE PRECISION,
+  PRIMARY KEY (country_code, year, sex)
+);
+```
+
+```{sql connection=con}
+CREATE TABLE wage (
+  country_code TEXT NOT NULL REFERENCES countries (country_code),
+  year         INTEGER NOT NULL,
+  sex          TEXT NOT NULL CHECK (sex IN ('female', 'male', 'both')),
+  wage_percent DOUBLE PRECISION,
+  PRIMARY KEY (country_code, year, sex)
+);
+```
+
+Finally, I added the data from R to Postgres.
+
+```{r Adding data to Postgres}
+dbWriteTable(con, "countries", countries_norm, append=TRUE)
+dbWriteTable(con, "wage", wage_norm, append=TRUE)
+dbWriteTable(con, "vulnerable_employ", vulnerable_norm, append=TRUE)
+```
+
+### Analysis
+
+I started this analysis by creating my dataset I will be using in the visualization. I combined the wage and vulnerable worker tables into one with an indicator. I used the transmute function to create a new column that has that indicator.
+
+```{R Visualization Prep Dataset 2}
+
+plot_data <- bind_rows(
+  wage_salary_tidy |>
+    transmute(country_name, year, sex,
+              indicator = "Wage and salaried workers",
+              value = wage_percent),
+  vulnerable_tidy |>
+    transmute(country_name, year, sex,
+              indicator = "Vulnerable employment",
+              value = vulnerable_employment_percent)
+) |>
+  filter(country_name == "World", sex %in% c("female", "male"))
+```
+
+```{r}
+ggplot(plot_data, aes(year, value, colour = sex)) +
+  geom_line(linewidth = 1.2) +
+  facet_wrap(~indicator, scales = "free_y") +
+  scale_colour_manual(
+    values = c(female = "#FFB6C1", male = "#87CEEB"),
+    labels = c(female = "Female", male = "Male")
+  ) +
+  scale_y_continuous(labels = label_number(suffix = "%")) +
+  labs(
+    title = "Wage employment and vulnerable employment over time, by gender",
+    subtitle = "Percent of each group's total employment, World",
+    x = NULL, y = NULL, colour = NULL
+  ) +
+  theme(legend.position = "top",
+        plot.title.position = "plot",
+        plot.title = element_text(face = "bold"),
+        strip.text = element_text(face = "bold", hjust = 0))
+```
+
+Looking at the graph above, it can be seen that the percent of people who's employment is vulnerable is decreasing while the percent of wage and salaried workers is increasing.
 
 ## Dataset 3
 
+For dataset 3, I wanted to practice reading HTML tables from the web. I tried to do this in project 1, but I did not have time. I decided to read a table of countries by electricity production from Wikipedia. Wikipedia uses a lot of HTML tables which is why I chose that as a source. Through this project, I will answer the following question:
+
+1.  What countries can be considered the most environmentally friendly?
+
 ### Loading
 
-```{R Loading Dataset 3, message=FALSE}
+For reading the HTML, I used rvest and read all the tables into a list and then pulled out the first table which is the needed one.
+
+```{r Saving CSV execute = FALSE}
 url <- "https://en.wikipedia.org/wiki/List_of_countries_by_electricity_production"
 
 tables <- url |>
@@ -213,6 +582,15 @@ tables <- url |>
 electricity_data <- tables[[1]] |>
   row_to_names(row_number = 1) |>
   clean_names()
+
+write.csv(electricity_data,"electricty_prod.csv")
+```
+
+Below I displayed the first 5 rows of the electricity data from Wikipedia:
+
+```{R Loading Dataset 3, message=FALSE}
+
+electricity_data <- read.csv("electricity_prod.csv")
 
 electricity_data |>
   head(5) |>
@@ -230,6 +608,8 @@ electricity_data |>
 
 ### Tidying
 
+To tidy the data, I started by renaming columns that were read incorrectly. Next, I used pivot longer to get the variables out of the column names. Finally, I added back in the classification of the generation type which was lost when reading the data.
+
 ```{R Tidying Dataset 3}
 
 electric_tidy <- electricity_data |>
@@ -245,6 +625,8 @@ electric_tidy <- electricity_data |>
     values_to = "t_wh"
   ) |>
   mutate(
+    t_wh = readr::parse_number(t_wh),
+    year = readr::parse_number(year),
     classification = case_when(
     generation_type %in% c("coal","gas", "other_fossil") ~ "fossil",
     generation_type %in% ("nuclear") ~ "nuclear",
@@ -255,6 +637,8 @@ electric_tidy <- electricity_data |>
 ```
 
 ### Database
+
+To put the tables in normal form, I separated out the classification column into a generation tables to contain that information.
 
 ```{R Normal Form}
 
@@ -267,21 +651,136 @@ generation_types <- electric_tidy |>
 
 ```
 
+Before creating the tables in Postgres, I made another ERD to plan out the database.
+
 ```{mermaid}
+---
+title: Electricity Prod Database Design
+config:
+  theme: neutral
+  look: classic
+---
 erDiagram
-    OBS_ELECTRIC {
+    elec_prod {
         string location 
         int year 
         string generation_type FK
         float t_wh
     }
     
-    GENERATION_TYPES {
+    gen_types {
       string generation_type PK
       string classification
     
     }
-    GENERATION_TYPES ||--o{ OBS_ELECTRIC : describes
+    gen_types ||--o{ elec_prod : describes
+```
+
+Similar to the other datasets, I dropped the tables before creating them to avoid errors.
+
+```{sql, connection = con}
+  DROP TABLE IF EXISTS elec_prod, gen_types;
+```
+
+I used the ERD I planned out to create the tables in the database.
+
+```{sql, connection = con}
+CREATE TABLE gen_types (
+    generation_type TEXT PRIMARY KEY,
+    classification  TEXT
+  );
+```
+
+```{sql, connection = con}
+CREATE TABLE elec_prod (
+    location        TEXT,
+    year            INTEGER,
+    generation_type TEXT REFERENCES gen_types (generation_type),
+    t_wh            DOUBLE PRECISION,
+    PRIMARY KEY (location, year, generation_type)
+  );
+```
+
+```{r}
+dbWriteTable(con,"gen_types", generation_types, append=TRUE)
+dbWriteTable(con,"elec_prod", observed_electric, append=TRUE)
+```
+
+### Analysis
+
+For my analysis, I will be trying to answer what countries are the most environmentally friendly.
+
+For this plot, I wanted to try asking Claude for help. I prompted with the structure of my data file, and this is the graph that Claude returned.
+
+```{r}
+aggregates <- c("World", "Africa", "Asia", "Europe", "European Union",
+                "North America", "South America", "Oceania", "Middle East")
+
+elec <- electric_tidy |>
+  filter(!location %in% aggregates, !is.na(t_wh))
+
+share <- elec |>
+  summarise(twh = sum(t_wh), .by = c(location, classification)) |>
+  mutate(total = sum(twh), share = twh / total, .by = location) |>
+  filter(total >= 50)
+
+top_green <- share |>
+  filter(classification %in% c("renewable", "nuclear")) |>
+  summarise(low_carbon = sum(share), .by = location) |>
+  slice_max(low_carbon, n = 15) |>
+  pull(location)
+
+p_green <- share |>
+  filter(location %in% top_green) |>
+  mutate(
+    location = factor(location, levels = rev(top_green)),
+    classification = factor(classification,
+                            levels = c("fossil", "nuclear", "renewable"))
+  ) |>
+  ggplot(aes(share, location, fill = classification)) +
+  geom_col(width = 0.75) +
+  scale_fill_manual(
+    values = c(fossil = "#7F7F7F", nuclear = "#E6AB02", renewable = "#2E8B57"),
+    breaks = c("renewable", "nuclear", "fossil"),   # legend order
+    labels = c("Renewable", "Nuclear", "Fossil")
+  ) +
+  scale_x_continuous(labels = label_percent(),
+                     expand = expansion(mult = c(0, 0.01))) +
+  labs(title = "Lowest-carbon electricity mix",
+       subtitle = "Top 15 countries by renewable + nuclear share (grids of at least 50 TWh)",
+       x = "Share of electricity generation", y = NULL, fill = NULL) +
+  theme_minimal(base_size = 13) +
+  theme(plot.title.position = "plot",
+        plot.title = element_text(face = "bold"),
+        legend.position = "top",
+        panel.grid.major.y = element_blank())
+p_green
+```
+
+This graphs shows the countries that have the highest percent of low-carbon energy. I included nuclear with renewable energy because it gives an actuate depiction of which countries have "green" energy and low amounts of electricity from fossil fuels.
+
+```{r Disconnect}
+dbDisconnect(con)
 ```
 
 ## Conclusion
+
+### WHO TB Data
+
+With this dataset, I was able to find the overall trend in TB cases and the overall trends of the top 5 countries. I'd recommend that further investigations look at the percent of the population that is infected with TB rather than the raw counts of cases.
+
+### World Bank Labor Statistics
+
+Uses the data from the World Bank, I showed the trend in vulnerable employment and wage and salary employees. Further investigation could break this down by country and region.
+
+### Electricity Production
+
+With the electricity production by country, I found which have the greenest mix of electricity. I would be curious to see what countries are the opposite and don't have any renewable production.
+
+This project gave me great practice with cleaning/tidying dataset, interacting with databases in R, and making graphs with ggplot. For the assignment, I focused on tidying and creating normalized databases rather than the analysis, but I still wanted to explore different plots. I learned a lot about interacting with messy data and getting the data into a usable format. I challenged myself by making sure the tables were in normalized form before loading them into Postgres. This was a great practice for me because I haven't used normalized forms since my undergraduate program.
+
+## AI Usage
+
+```{r Disconnect}
+dbDisconnect(con)
+```
