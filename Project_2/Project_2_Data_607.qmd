@@ -344,7 +344,7 @@ wage_data |>
   gt() |>
   tab_header(
     title = md("**Raw Global Labor Statistics**"),
-    subtitle = "First 5 Lines and Column Subset"
+    subtitle = "First 5 Lines"
   ) |>
   opt_align_table_header(align = "left") |>
   sub_missing(
@@ -595,7 +595,7 @@ electricity_data |>
   gt() |>
   tab_header(
     title = md("**Raw Electricity Production by Country**"),
-    subtitle = "First 5 Lines and Column Subset"
+    subtitle = "First 5 Lines"
   ) |>
   opt_align_table_header(align = "left") |>
   sub_missing(
@@ -765,11 +765,13 @@ With this dataset, I was able to find the overall trend in TB cases and the over
 
 ### World Bank Labor Statistics
 
-Using the data from the World Bank, I showed the trend in vulnerable employment and wage and salary employees. The percent of vulnerable employed has decreased worldwide, while the percent of wage employees has increased. Also, I visualized that a lower percent of females are employed as wage or salaried. Further investigation could break this down by country and region.
+Using the data from the World Bank, I showed the trend in vulnerable employment and wage and salary employees. The percent of vulnerable employed has decreased worldwide, while the percent of wage employees has increased. Also, I visualized that a higher percent of females are employed as wage or salaried. Further investigation could break this down by country and region.
 
 ### Electricity Production
 
 With the electricity production by country, I found which have the greenest mix of electricity. The top countries were Norway, Sweden, and Switzerland. I would be curious to see what countries are the opposite and don't have any renewable production.
+
+### Overall
 
 This project gave me great practice with cleaning/tidying datasets, interacting with databases in R, and making graphs with ggplot. For the assignment, I focused on tidying and creating normalized databases rather than the analysis, but I still wanted to explore different plots. I learned a lot about interacting with messy data and getting the data into a usable format. I challenged myself by making sure the tables were in normalized form before loading them into Postgres. This was a great practice for me because I haven't used normalized forms since my undergraduate program.
 

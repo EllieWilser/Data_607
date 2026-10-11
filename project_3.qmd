@@ -1,0 +1,21 @@
+---
+title: "Project 3"
+format: html
+editor: visual
+---
+
+## Introduction
+
+## Approach
+
+## Code
+
+### Loading Weather Data (Member 1)
+
+### Loading NYISO Electricity (Member 2)
+
+### Database Design and Creation (Member 3)
+
+### Analysis (Member 4)
+
+## Conclusion
