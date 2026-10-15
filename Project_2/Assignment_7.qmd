@@ -1,0 +1,65 @@
+---
+title: "Data 607: Week 7 Assignment"
+subtitle: "JSON and HTML"
+author: "Ellie Wilser"
+date: today
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    number-sections: true
+    smooth-scroll: true
+    code-summary: "Show code"
+    code-overflow: wrap
+    df-print: paged
+    anchor-sections: true
+    fig-align: center
+    fig-width: 8
+    fig-height: 5
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+## Introduction
+
+For this assignment, I will be creating a HTML and JSON file with 3 books including multiple attributes. The following books will be manual entered into the file formats:
+
+**Abstract Algebra**
+
+- **Author**: David S. Dummit and Richard M. Foote
+
+- **ISBN:** 9780471433347
+
+- **Copyright Year:** 2004
+
+- **Publisher:** John Wiley & Sons, Incorporated
+
+**Normal People**
+
+- **Author:** Sally Rooney
+
+- **ISBN:** 9781984822185
+
+- **Copyright Year:** 2018
+
+- **Publisher:** Crown / Hogarth
+
+**Frankenstein**
+
+- **Author:** Mary Shelley
+
+- **ISBN:** NA
+
+- **Copyright Year:** 1818
+
+- **Publisher:** Lackington, Hughes, Harding, Mavor & Jones
+
+## Approach
+
+I first plan to create the HTML and JSON files in VS Code, and then load the data into R. I would expect that dataframes will be the same when loading from HTML and JSON. I have experience working with HTML and JSON files in R, but I have never created them manually. Creating the files will be the most challenging part of the assignment, but I am exciting to learn something new.

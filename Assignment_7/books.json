@@ -1,0 +1,26 @@
+[
+    {
+        "Title": "Abstract Algebra",
+        "Author": ["David S. Dummit", "Richard M. Foote"],
+        "ISBN": 9780471433347,
+        "Copyright Year": 2004,
+        "Publisher": "John Wiley & Sons, Incorporated"
+
+    },
+
+    {
+        "Title": "Normal People",
+        "Author": "Sally Rooney",
+        "ISBN": 9781984822185,
+        "Copyright Year": 2018,
+        "Publisher": "Crown / Hogarth"
+    },
+
+    {
+    "Title": "Frankenstein",
+    "Author": "Mary Shelley",
+    "ISBN": null,
+    "Copyright Year": 1818,
+    "Publisher": "Lackington, Hughes, Harding, Mavor & Jones"
+    }
+]
