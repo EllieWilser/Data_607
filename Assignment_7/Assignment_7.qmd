@@ -1,0 +1,143 @@
+---
+title: "Data 607: Week 7 Assignment"
+subtitle: "JSON and HTML"
+author: "Ellie Wilser"
+date: today
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    number-sections: true
+    smooth-scroll: true
+    code-summary: "Show code"
+    code-overflow: wrap
+    df-print: paged
+    anchor-sections: true
+    fig-align: center
+    fig-width: 8
+    fig-height: 5
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+## Introduction
+
+For this assignment, I will be creating a HTML and JSON file with 3 books including multiple attributes. The following books will be manual entered into the file formats:
+
+**Abstract Algebra**
+
+- **Author**: David S. Dummit and Richard M. Foote
+
+- **ISBN:** 9780471433347
+
+- **Copyright Year:** 2004
+
+- **Publisher:** John Wiley & Sons, Incorporated
+
+**Normal People**
+
+- **Author:** Sally Rooney
+
+- **ISBN:** 9781984822185
+
+- **Copyright Year:** 2018
+
+- **Publisher:** Crown / Hogarth
+
+**Frankenstein**
+
+- **Author:** Mary Shelley
+
+- **ISBN:** NA
+
+- **Copyright Year:** 1818
+
+- **Publisher:** Lackington, Hughes, Harding, Mavor & Jones
+
+## Approach
+
+I first plan to create the HTML and JSON files in VS Code, and then load the data into R. I would expect that dataframes will be the same when loading from HTML and JSON. I have experience working with HTML and JSON files in R, but I have never created them manually. Creating the files will be the most challenging part of the assignment, but I am exciting to learn something new.
+
+## Code
+
+Before loading the HTML and JSON files into R, I manually created them in VS Code. Below is how I loaded them into R using the rvest abd jsonlite packages library:
+
+```{r Libraries}
+library(rvest)
+library(jsonlite)
+library(tidyr)
+library(dplyr)
+library(janitor)
+library(gt)
+```
+
+```{r Loading JSON}
+library(rvest)
+library(jsonlite)
+
+json_path <- "https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_7/books.json"
+
+book_table_json <- fromJSON(json_path)
+
+book_table_json
+```
+
+```{r Loading HTML}
+
+html_path <- "https://raw.githubusercontent.com/EllieWilser/Data_607/refs/heads/main/Assignment_7/books.html"
+
+html_content <- read_html(html_path)
+
+table_list <- html_content %>% html_table()
+
+book_table_html <- table_list[[1]]
+```
+
+Besides data types, the data frames after extracting are very similar. With authors, the main difference is that in json they were stored as a list instead of being comma separated.
+
+```{r Cleaning Dataframes}
+json_books_clean <- book_table_json |>
+  unnest_wider(Author, names_sep="_") |>
+  mutate(
+    ISBN = as.character(ISBN),
+  ) |>
+  clean_names()
+
+html_books_clean <- book_table_html |>
+  mutate(ISBN = na_if(ISBN, "null")) |>
+  separate_wider_delim(
+    Authors,
+    delim = ", ",
+    names = c("Author_1", "Author_2"),
+    too_few = "align_start"
+  ) |> 
+  clean_names()
+
+
+```
+
+```{r Display Results)}
+
+json_books_clean |>
+  gt() |>
+  tab_header(title="JSON Data Extracted")
+
+html_books_clean |>
+  gt() |>
+  tab_header(title="HTML Data Extracted")
+
+```
+
+From the table above, it can be seen that JSON and HTML loaded the exact same data. However, this was done after basic data cleaning and extracting.
+
+## Conclusion
+
+This assignment was great practice for me and helped me understand JSON and HTML formatting. I have little experience creating HTML and JSON files manual, so it was great practice. It was interesting to see how the file were loaded into R differently, practically how the multiple authors were loaded as lists instead of the dataframe. After cleaning, the tables were the exact same as I expected.
+
+Future investigation can look at scrapping data from the web that uses these formats or working with APIs.
