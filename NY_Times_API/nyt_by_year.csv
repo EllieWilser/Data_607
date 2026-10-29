@@ -1,0 +1,271 @@
+artist,year,hits
+Albrecht Dürer,1981,11
+Albrecht Dürer,1982,13
+Albrecht Dürer,1983,6
+Albrecht Dürer,1984,0
+Albrecht Dürer,1985,10
+Albrecht Dürer,1986,12
+Albrecht Dürer,1987,8
+Albrecht Dürer,1988,14
+Albrecht Dürer,1989,16
+Albrecht Dürer,1990,7
+Albrecht Dürer,1991,12
+Albrecht Dürer,1992,5
+Albrecht Dürer,1993,6
+Albrecht Dürer,1994,9
+Albrecht Dürer,1995,9
+Albrecht Dürer,1996,9
+Albrecht Dürer,1997,14
+Albrecht Dürer,1998,27
+Albrecht Dürer,1999,16
+Albrecht Dürer,2000,31
+Albrecht Dürer,2001,18
+Albrecht Dürer,2002,12
+Albrecht Dürer,2003,20
+Albrecht Dürer,2004,16
+Albrecht Dürer,2005,14
+Albrecht Dürer,2006,27
+Albrecht Dürer,2007,65
+Albrecht Dürer,2008,18
+Albrecht Dürer,2009,9
+Albrecht Dürer,2010,24
+Albrecht Dürer,2011,14
+Albrecht Dürer,2012,44
+Albrecht Dürer,2013,34
+Albrecht Dürer,2014,9
+Albrecht Dürer,2015,11
+Albrecht Dürer,2016,6
+Albrecht Dürer,2017,5
+Albrecht Dürer,2018,3
+Albrecht Dürer,2019,6
+Albrecht Dürer,2020,3
+Albrecht Dürer,2021,6
+Albrecht Dürer,2022,7
+Albrecht Dürer,2023,3
+Albrecht Dürer,2024,7
+Albrecht Dürer,2025,5
+Rembrandt,1981,21
+Rembrandt,1982,27
+Rembrandt,1983,33
+Rembrandt,1984,44
+Rembrandt,1985,36
+Rembrandt,1986,38
+Rembrandt,1987,45
+Rembrandt,1988,32
+Rembrandt,1989,39
+Rembrandt,1990,43
+Rembrandt,1991,21
+Rembrandt,1992,21
+Rembrandt,1993,24
+Rembrandt,1994,17
+Rembrandt,1995,35
+Rembrandt,1996,32
+Rembrandt,1997,25
+Rembrandt,1998,54
+Rembrandt,1999,41
+Rembrandt,2000,58
+Rembrandt,2001,64
+Rembrandt,2002,47
+Rembrandt,2003,51
+Rembrandt,2004,66
+Rembrandt,2005,47
+Rembrandt,2006,110
+Rembrandt,2007,64
+Rembrandt,2008,52
+Rembrandt,2009,48
+Rembrandt,2010,33
+Rembrandt,2011,56
+Rembrandt,2012,66
+Rembrandt,2013,57
+Rembrandt,2014,29
+Rembrandt,2015,57
+Rembrandt,2016,66
+Rembrandt,2017,30
+Rembrandt,2018,28
+Rembrandt,2019,24
+Rembrandt,2020,19
+Rembrandt,2021,22
+Rembrandt,2022,14
+Rembrandt,2023,27
+Rembrandt,2024,19
+Rembrandt,2025,20
+Francisco Goya,1981,11
+Francisco Goya,1982,8
+Francisco Goya,1983,23
+Francisco Goya,1984,19
+Francisco Goya,1985,16
+Francisco Goya,1986,26
+Francisco Goya,1987,15
+Francisco Goya,1988,20
+Francisco Goya,1989,28
+Francisco Goya,1990,29
+Francisco Goya,1991,20
+Francisco Goya,1992,13
+Francisco Goya,1993,27
+Francisco Goya,1994,17
+Francisco Goya,1995,18
+Francisco Goya,1996,12
+Francisco Goya,1997,16
+Francisco Goya,1998,21
+Francisco Goya,1999,16
+Francisco Goya,2000,33
+Francisco Goya,2001,36
+Francisco Goya,2002,37
+Francisco Goya,2003,26
+Francisco Goya,2004,32
+Francisco Goya,2005,46
+Francisco Goya,2006,71
+Francisco Goya,2007,49
+Francisco Goya,2008,37
+Francisco Goya,2009,35
+Francisco Goya,2010,42
+Francisco Goya,2011,15
+Francisco Goya,2012,35
+Francisco Goya,2013,24
+Francisco Goya,2014,69
+Francisco Goya,2015,34
+Francisco Goya,2016,18
+Francisco Goya,2017,16
+Francisco Goya,2018,12
+Francisco Goya,2019,11
+Francisco Goya,2020,16
+Francisco Goya,2021,14
+Francisco Goya,2022,14
+Francisco Goya,2023,8
+Francisco Goya,2024,9
+Francisco Goya,2025,11
+Frida Kahlo,1981,0
+Frida Kahlo,1982,0
+Frida Kahlo,1983,1
+Frida Kahlo,1984,1
+Frida Kahlo,1985,3
+Frida Kahlo,1986,0
+Frida Kahlo,1987,1
+Frida Kahlo,1988,3
+Frida Kahlo,1989,3
+Frida Kahlo,1990,17
+Frida Kahlo,1991,6
+Frida Kahlo,1992,11
+Frida Kahlo,1993,10
+Frida Kahlo,1994,4
+Frida Kahlo,1995,11
+Frida Kahlo,1996,5
+Frida Kahlo,1997,12
+Frida Kahlo,1998,10
+Frida Kahlo,1999,9
+Frida Kahlo,2000,3
+Frida Kahlo,2001,19
+Frida Kahlo,2002,67
+Frida Kahlo,2003,29
+Frida Kahlo,2004,12
+Frida Kahlo,2005,21
+Frida Kahlo,2006,18
+Frida Kahlo,2007,12
+Frida Kahlo,2008,10
+Frida Kahlo,2009,10
+Frida Kahlo,2010,7
+Frida Kahlo,2011,24
+Frida Kahlo,2012,7
+Frida Kahlo,2013,6
+Frida Kahlo,2014,7
+Frida Kahlo,2015,37
+Frida Kahlo,2016,11
+Frida Kahlo,2017,7
+Frida Kahlo,2018,14
+Frida Kahlo,2019,29
+Frida Kahlo,2020,10
+Frida Kahlo,2021,10
+Frida Kahlo,2022,12
+Frida Kahlo,2023,13
+Frida Kahlo,2024,4
+Frida Kahlo,2025,17
+Andy Warhol,1981,20
+Andy Warhol,1982,18
+Andy Warhol,1983,23
+Andy Warhol,1984,21
+Andy Warhol,1985,36
+Andy Warhol,1986,25
+Andy Warhol,1987,42
+Andy Warhol,1988,57
+Andy Warhol,1989,75
+Andy Warhol,1990,39
+Andy Warhol,1991,31
+Andy Warhol,1992,32
+Andy Warhol,1993,44
+Andy Warhol,1994,48
+Andy Warhol,1995,53
+Andy Warhol,1996,42
+Andy Warhol,1997,70
+Andy Warhol,1998,94
+Andy Warhol,1999,115
+Andy Warhol,2000,86
+Andy Warhol,2001,125
+Andy Warhol,2002,143
+Andy Warhol,2003,131
+Andy Warhol,2004,96
+Andy Warhol,2005,111
+Andy Warhol,2006,188
+Andy Warhol,2007,138
+Andy Warhol,2008,147
+Andy Warhol,2009,129
+Andy Warhol,2010,153
+Andy Warhol,2011,138
+Andy Warhol,2012,145
+Andy Warhol,2013,116
+Andy Warhol,2014,133
+Andy Warhol,2015,127
+Andy Warhol,2016,115
+Andy Warhol,2017,76
+Andy Warhol,2018,76
+Andy Warhol,2019,90
+Andy Warhol,2020,51
+Andy Warhol,2021,57
+Andy Warhol,2022,72
+Andy Warhol,2023,76
+Andy Warhol,2024,48
+Andy Warhol,2025,66
+All Arts articles,1981,5503
+All Arts articles,1982,5759
+All Arts articles,1983,6097
+All Arts articles,1984,7267
+All Arts articles,1985,6899
+All Arts articles,1986,6718
+All Arts articles,1987,6821
+All Arts articles,1988,5834
+All Arts articles,1989,5592
+All Arts articles,1990,5013
+All Arts articles,1991,4427
+All Arts articles,1992,4265
+All Arts articles,1993,4356
+All Arts articles,1994,4262
+All Arts articles,1995,4748
+All Arts articles,1996,5156
+All Arts articles,1997,4945
+All Arts articles,1998,5367
+All Arts articles,1999,5304
+All Arts articles,2000,5340
+All Arts articles,2001,5653
+All Arts articles,2002,5384
+All Arts articles,2003,5220
+All Arts articles,2004,6158
+All Arts articles,2005,9673
+All Arts articles,2006,10000
+All Arts articles,2007,8860
+All Arts articles,2008,10000
+All Arts articles,2009,10000
+All Arts articles,2010,9951
+All Arts articles,2011,8226
+All Arts articles,2012,7754
+All Arts articles,2013,7818
+All Arts articles,2014,8016
+All Arts articles,2015,8046
+All Arts articles,2016,6173
+All Arts articles,2017,5055
+All Arts articles,2018,4634
+All Arts articles,2019,4485
+All Arts articles,2020,3837
+All Arts articles,2021,3638
+All Arts articles,2022,3644
+All Arts articles,2023,3663
+All Arts articles,2024,3888
+All Arts articles,2025,3560

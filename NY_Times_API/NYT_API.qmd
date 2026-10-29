@@ -8,69 +8,310 @@ format:
     toc: true
     toc-location: left
     toc-depth: 3
+    code-fold: true
     code-summary: "Show code"
     code-tools: true
     df-print: paged
     smooth-scroll: true
     embed-resources: true
+execute:
+  message: false
+  warning: false
 ---
 
-## Introduction
+## Introduction and Approach
 
-## Approach
+For this assignment, I wanted to try something different and use Claude code. I had the idea of comparing NYT coverage with another source. I wanted to merge my interests in art and data science into one project, so I decided to compare NYT coverage of artist. I didn't know what other API I could use to compared to, so I asked Claude to recommend a few. Claude mentioned that the MET has a free API, and I could compare coverage between The New York Times and The MET.
 
-Code
+I used the claude code tool to create the following API structure for the assignment. At first, Claude returned the code with little explanation, so I asked for a detailed section explaining the code and having an emphasis on the parameters used in calling the APIs.
+
+As well, I specifically asked Claude to leave out the analysis because I did not want Claude to create my entire assignment. I plan to examine how artist coverage compares between the MET and NYT over time. I chose 5 different artists to examine, that are from different time periods.
+
+Below is the code that Claude created for the 2 different APIs.
+
+## How the API code works
+
+::: callout-note
+This section was written with Claude (Anthropic's AI assistant).
+:::
+
+The data comes from two APIs. The code that called them is shown below for reference, but it is not run when this document renders (`eval: false`). Its results were saved to three CSV files, and the document loads those instead, so rendering never calls the APIs.
+
+| File | Contents |
+|------------------|------------------------------------------------------|
+| `nyt_by_year.csv` | NYT Arts articles per artist per year, plus yearly Arts totals |
+| `met_ids.csv` | Every Met object ID found for each artist |
+| `met_objects.csv` | One record per Met object (acquisition year, date, type) |
+
+### Artists and years
+
+The `artists` table gives each artist two search names. The Met catalogs some artists under a longer name (Goya is "Francisco de Goya"), and the NYT search uses only the surname because articles often drop the first name. The NYT counts cover 1981–2025, because section names on older NYT articles are unreliable and the Arts filter would quietly drop them.
+
+### New York Times Article Search API
+
+Endpoint: `https://api.nytimes.com/svc/search/v2/articlesearch.json`
+
+`nyt_hits()` makes one request per artist per year and keeps only the number of matching articles (`hits`), not the articles themselves.
+
+| Parameter | Value in this project | What it does |
+|--------------|--------------|--------------------------------------------|
+| `q` | `"Warhol"` | Search text. The quotes make it match the exact name. |
+| `fq` | `section.name:"Arts"` | Filter query. Keeps only articles from the Arts section. |
+| `begin_date` | `19810101` | First publication date to include (YYYYMMDD). |
+| `end_date` | `19811231` | Last publication date to include. With `begin_date`, this selects one year. |
+| `api-key` | from `.Renviron` | Personal key from the NYT developer site, read with `Sys.getenv("NYT_API_KEY")`. |
+
+When `q` is left out, the request counts every Arts article that year. Those totals let each artist's count be turned into a share of all Arts coverage, because the number of Arts articles changes from year to year.
+
+**Limits.** The NYT allows about 5 requests per minute and 500 per day. The code waits 12 seconds after each request, and `req_retry()` waits a full minute and tries again if the API answers 429 (too many requests). 5 artists × 45 years plus 45 yearly totals is 270 requests, about 55 minutes.
+
+**Field names.** The NYT renamed its filter fields. The old filter `section_name:("Arts")` returns 0 results without an error, so the code uses `section.name`.
+
+### Met Collection API
+
+No key is needed. The code uses two endpoints.
+
+**1. Search** (`/public/collection/v1.1/search`) returns the IDs of matching objects. The Met retired the original `/v1/search` on 2026-10-01, so this uses `/v1.1`.
+
+| Parameter | Value in this project | What it does |
+|---------------|---------------|------------------------------------------|
+| `q` | `"Andy Warhol"` | Search text. Without quotes the search is fuzzy and matches other artists. |
+| `artistOrCulture` | `true` | Search only the artist and culture fields, not titles or descriptions. |
+| `limit` | `500` | IDs per request. 500 is the most the API returns at once. |
+| `offset` | `0`, `500`, … | Where to start. Dürer has 843 objects, so his IDs take two requests. |
+
+The response contains `total` (the number of matches) and `objectIDs`. `met_object_ids()` keeps raising `offset` by 500 until it has all of them.
+
+**2. Object** (`/public/collection/v1/objects/{objectID}`) returns the full record for one object. `met_object()` keeps these fields:
+
+| Field | Meaning |
+|-------------------|-----------------------------------------------------|
+| `accessionYear` | Year the Met acquired the object (used for counts by year) |
+| `objectBeginDate` | Earliest year the object was made |
+| `classification` | Type of object, such as Prints, Drawings or Paintings |
+| `artistDisplayName` | Artist name as the Met catalogs it |
+| `isHighlight` | Whether the Met lists it as a highlight of the collection |
+
+A few IDs in search results no longer exist and return 404. Those rows are saved with their status code so they can be filtered out.
+
+**Limits.** The Met blocks rapid requests with HTTP 403, so the code pauses 1 second before each request and retries on 403, 429 and 503. The five artists have about 1,780 objects, so collecting them took about 30–40 minutes.
+
+### How the results were saved
+
+`collect_nyt()` and `collect_met()` append each result to its CSV as soon as it arrives, and skip anything already saved. If a run stopped partway, running it again continued where it left off. To download fresh data, delete the CSV files and run the `collect-nyt` and `collect-met` chunks in RStudio.
 
 ```{r}
+#| label: setup
 library(tidyverse)
 library(httr2)
 
-artists <- c("Claude Monet", "Vincent van Gogh", "Pablo Picasso", "Rembrandt",
-             "Johannes Vermeer", "Edgar Degas", "Henri Matisse", "Andy Warhol",
-             "Georgia O'Keeffe", "Frida Kahlo", "Jean-Michel Basquiat",
-             "Katsushika Hokusai", "John Singer Sargent", "Winslow Homer",
-             "Jackson Pollock", "Mark Rothko", "Edward Hopper", "Kara Walker",
-             "Yayoi Kusama", "Jacob Lawrence", "Mary Cassatt", "Francisco Goya",
-             "Gustav Klimt", "Albrecht Dürer")
+nyt_file <- "nyt_by_year.csv"
+met_file <- "met_objects.csv"
+met_ids_file <- "met_ids.csv"
 
-# Met: number of objects matching an artist (extra filters via ...)
-met_count <- function(artist, ...) {
-  request("https://collectionapi.metmuseum.org/public/collection/v1.1/search") |>
-    req_user_agent("Project-3 class project") |>
-    req_url_query(artistOrCulture = "true", ..., limit = 1, q = artist) |>
-    req_retry(max_tries = 3) |>
-    req_perform() |>
-    resp_body_json() |>
-    pluck("total", .default = 0L)
-}
+artists <- tribble(
+  ~artist,          ~period,                ~met_name,           ~nyt_name,
+  "Albrecht Dürer", "Northern Renaissance", "Albrecht Dürer",    "Dürer",
+  "Rembrandt",      "Dutch Golden Age",     "Rembrandt",         "Rembrandt",
+  "Francisco Goya", "Romanticism",          "Francisco de Goya", "Goya",
+  "Frida Kahlo",    "Mexican modernism",    "Frida Kahlo",       "Kahlo",
+  "Andy Warhol",    "Pop Art",              "Andy Warhol",       "Warhol"
+)
 
-# NYT: number of Arts-section articles mentioning the artist
-nyt_hits <- function(artist, begin = "20000101", end = "20251231") {
+years <- 1981:2025
+```
+
+### New York Times: articles per year
+
+```{r}
+#| label: nyt-functions
+#| eval: false
+# NYT: number of Arts-section articles in one year.
+# term = NULL counts every Arts article that year (used to normalize).
+nyt_hits <- function(term, year) {
   resp <- request("https://api.nytimes.com/svc/search/v2/articlesearch.json") |>
     req_url_query(
-      q = paste0('"', artist, '"'),
+      q = if (!is.null(term)) paste0('"', term, '"'),
       fq = 'section.name:"Arts"',
-      begin_date = begin, end_date = end,
+      begin_date = paste0(year, "0101"),
+      end_date = paste0(year, "1231"),
       `api-key` = Sys.getenv("NYT_API_KEY")
     ) |>
-    req_retry(max_tries = 3) |>
+    # 429 = too many requests; wait a full minute before trying again
+    req_retry(max_tries = 4, backoff = \(i) 60) |>
     req_perform() |>
     resp_body_json()
   Sys.sleep(12)  # stay under 5 requests/minute
   resp$response$meta$hits %||% resp$response$metadata$hits %||% NA_integer_
 }
 
-coverage <- tibble(artist = artists) |>
-  mutate(
-    met_objects    = map_int(artist, met_count),
-    met_on_view    = map_int(artist, \(a) met_count(a, isOnView = "true")),
-    met_highlights = map_int(artist, \(a) met_count(a, isHighlight = "true")),
-    nyt_articles   = map_int(artist, nyt_hits)
-  )
+# Request every artist-year (plus the yearly Arts total) that isn't saved yet,
+# appending each result to the CSV as soon as it arrives
+collect_nyt <- function() {
+  todo <- expand_grid(artist = c(artists$artist, "All Arts articles"), year = years)
+  if (file.exists(nyt_file)) {
+    todo <- anti_join(todo, read_csv(nyt_file, show_col_types = FALSE),
+                      by = c("artist", "year"))
+  }
+  if (nrow(todo) == 0) return(invisible())
+  message(nrow(todo), " NYT requests to make (about ",
+          ceiling(nrow(todo) / 5), " minutes)")
 
-write_csv(coverage, "artist_coverage.csv")  # pull once, then read the CSV
+  terms <- set_names(artists$nyt_name, artists$artist)
+  for (i in seq_len(nrow(todo))) {
+    row <- todo[i, ]
+    term <- if (row$artist == "All Arts articles") NULL else terms[[row$artist]]
+    row$hits <- nyt_hits(term, row$year)
+    write_csv(row, nyt_file, append = file.exists(nyt_file))
+    message(row$artist, " ", row$year, ": ", row$hits)
+  }
+}
 ```
 
 ```{r}
-coverage
+#| label: collect-nyt
+#| eval: false
+collect_nyt()
 ```
+
+### The Met: objects acquired per year
+
+```{r}
+#| label: met-functions
+#| eval: false
+# Met: all object IDs for an artist, 500 at a time
+met_object_ids <- function(met_name) {
+  ids <- integer()
+  offset <- 0
+  repeat {
+    Sys.sleep(1)  # the Met returns 403 for rapid requests
+    resp <- request("https://collectionapi.metmuseum.org/public/collection/v1.1/search") |>
+      req_user_agent("Data 607 class project") |>
+      # quote the name so the search matches the full name only
+      req_url_query(artistOrCulture = "true", limit = 500, offset = offset,
+                    q = paste0('"', met_name, '"')) |>  # keep q last
+      req_retry(max_tries = 4,
+                is_transient = \(resp) resp_status(resp) %in% c(403, 429, 503)) |>
+      req_perform() |>
+      resp_body_json()
+    page <- unlist(resp$objectIDs)
+    ids <- c(ids, page)
+    offset <- offset + 500
+    if (length(page) == 0 || offset >= resp$total) break
+  }
+  unique(ids)
+}
+
+# Met: the fields we need from one object record.
+# Some IDs in search results no longer exist (404); those come back as NA.
+met_object <- function(id) {
+  Sys.sleep(1)
+  resp <- request("https://collectionapi.metmuseum.org/public/collection/v1/objects") |>
+    req_url_path_append(id) |>
+    req_user_agent("Data 607 class project") |>
+    req_retry(max_tries = 4,
+              is_transient = \(resp) resp_status(resp) %in% c(403, 429, 503)) |>
+    req_error(is_error = \(resp) FALSE) |>
+    req_perform()
+  # keep the same columns either way so rows line up in the CSV
+  obj <- if (resp_status(resp) == 200) resp_body_json(resp) else list()
+  tibble(
+    objectID          = id,
+    status            = resp_status(resp),
+    artistDisplayName = obj$artistDisplayName %||% NA,
+    title             = obj$title %||% NA,
+    classification    = obj$classification %||% NA,
+    accessionYear     = as.character(obj$accessionYear %||% NA),
+    objectBeginDate   = obj$objectBeginDate %||% NA,
+    isHighlight       = obj$isHighlight %||% NA
+  )
+}
+
+# Fetch every object record that isn't saved yet, appending as we go.
+# Each artist's ID list is saved too, so later runs skip the search.
+collect_met <- function() {
+  saved <- if (file.exists(met_file)) {
+    read_csv(met_file, show_col_types = FALSE, col_types = cols(accessionYear = "c"))
+  } else {
+    tibble(artist = character(), objectID = integer())
+  }
+  saved_ids <- if (file.exists(met_ids_file)) {
+    read_csv(met_ids_file, show_col_types = FALSE)
+  } else {
+    tibble(artist = character(), objectID = integer())
+  }
+
+  for (i in seq_len(nrow(artists))) {
+    artist <- artists$artist[i]
+    if (artist %in% saved_ids$artist) {
+      ids <- saved_ids$objectID[saved_ids$artist == artist]
+    } else {
+      ids <- met_object_ids(artists$met_name[i])
+      # an artist with no objects is saved with an NA ID
+      write_csv(tibble(artist = artist, objectID = if (length(ids)) ids else NA_integer_),
+                met_ids_file, append = file.exists(met_ids_file))
+    }
+    ids <- setdiff(na.omit(ids), saved$objectID[saved$artist == artist])
+    message(artists$artist[i], ": ", length(ids), " Met objects to fetch")
+    for (id in ids) {
+      row <- met_object(id) |> mutate(artist = artists$artist[i], .before = 1)
+      write_csv(row, met_file, append = file.exists(met_file))
+    }
+  }
+}
+```
+
+```{r}
+#| label: collect-met
+#| eval: false
+collect_met()
+```
+
+### Loading the saved data
+
+```{r}
+#| label: load-data
+nyt <- read_csv(nyt_file, show_col_types = FALSE)
+
+met <- read_csv(met_file, show_col_types = FALSE, col_types = cols(accessionYear = "c")) |>
+  filter(status == 200) |>
+  mutate(accession_year = as.integer(str_extract(accessionYear, "\\d{4}")))
+```
+
+### Combining the two sources
+
+```{r}
+#| label: combine
+nyt_yearly <- nyt |>
+  filter(artist != "All Arts articles") |>
+  left_join(nyt |>
+              filter(artist == "All Arts articles") |>
+              select(year, arts_total = hits),
+            by = "year") |>
+  rename(nyt_articles = hits) |>
+  mutate(nyt_share = nyt_articles / arts_total)
+
+met_yearly <- met |>
+  filter(!is.na(accession_year)) |>
+  count(artist, year = accession_year, name = "met_acquired")
+
+# One row per artist per year, 1981–2025, with 0 where nothing happened
+yearly <- expand_grid(artist = artists$artist, year = years) |>
+  left_join(nyt_yearly, by = c("artist", "year")) |>
+  left_join(met_yearly, by = c("artist", "year")) |>
+  mutate(met_acquired = replace_na(met_acquired, 0L)) |>
+  left_join(select(artists, artist, period), by = "artist")
+```
+
+### The data
+
+```{r}
+#| label: data-table
+yearly
+```
+
+`met` holds every Met object record, including acquisitions from before 1981, which are left out of `yearly` so both sources cover the same years.
+
+## Analysis
+
+## Conclusion

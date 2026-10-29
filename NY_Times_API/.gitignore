@@ -1,0 +1,8 @@
+/.quarto/
+**/*.quarto_ipynb
+
+# Keep R session files and secrets out of git
+.Rhistory
+.RData
+.Renviron
+.Rproj.user/
