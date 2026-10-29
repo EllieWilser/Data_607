@@ -1,0 +1,76 @@
+---
+title: "New York Times and MET API Analysis"
+author: "Ellie Wilser"
+editor: visual
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    code-summary: "Show code"
+    code-tools: true
+    df-print: paged
+    smooth-scroll: true
+    embed-resources: true
+---
+
+## Introduction
+
+## Approach
+
+Code
+
+```{r}
+library(tidyverse)
+library(httr2)
+
+artists <- c("Claude Monet", "Vincent van Gogh", "Pablo Picasso", "Rembrandt",
+             "Johannes Vermeer", "Edgar Degas", "Henri Matisse", "Andy Warhol",
+             "Georgia O'Keeffe", "Frida Kahlo", "Jean-Michel Basquiat",
+             "Katsushika Hokusai", "John Singer Sargent", "Winslow Homer",
+             "Jackson Pollock", "Mark Rothko", "Edward Hopper", "Kara Walker",
+             "Yayoi Kusama", "Jacob Lawrence", "Mary Cassatt", "Francisco Goya",
+             "Gustav Klimt", "Albrecht Dürer")
+
+# Met: number of objects matching an artist (extra filters via ...)
+met_count <- function(artist, ...) {
+  request("https://collectionapi.metmuseum.org/public/collection/v1.1/search") |>
+    req_user_agent("Project-3 class project") |>
+    req_url_query(artistOrCulture = "true", ..., limit = 1, q = artist) |>
+    req_retry(max_tries = 3) |>
+    req_perform() |>
+    resp_body_json() |>
+    pluck("total", .default = 0L)
+}
+
+# NYT: number of Arts-section articles mentioning the artist
+nyt_hits <- function(artist, begin = "20000101", end = "20251231") {
+  resp <- request("https://api.nytimes.com/svc/search/v2/articlesearch.json") |>
+    req_url_query(
+      q = paste0('"', artist, '"'),
+      fq = 'section.name:"Arts"',
+      begin_date = begin, end_date = end,
+      `api-key` = Sys.getenv("NYT_API_KEY")
+    ) |>
+    req_retry(max_tries = 3) |>
+    req_perform() |>
+    resp_body_json()
+  Sys.sleep(12)  # stay under 5 requests/minute
+  resp$response$meta$hits %||% resp$response$metadata$hits %||% NA_integer_
+}
+
+coverage <- tibble(artist = artists) |>
+  mutate(
+    met_objects    = map_int(artist, met_count),
+    met_on_view    = map_int(artist, \(a) met_count(a, isOnView = "true")),
+    met_highlights = map_int(artist, \(a) met_count(a, isHighlight = "true")),
+    nyt_articles   = map_int(artist, nyt_hits)
+  )
+
+write_csv(coverage, "artist_coverage.csv")  # pull once, then read the CSV
+```
+
+```{r}
+coverage
+```
