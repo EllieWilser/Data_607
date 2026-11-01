@@ -1,5 +1,5 @@
 ---
-title: "New York Times and MET API Analysis"
+title: "New York Times and Met API Analysis"
 author: "Ellie Wilser"
 editor: visual
 format:
@@ -21,9 +21,9 @@ execute:
 
 ## Introduction and Approach
 
-For this assignment, I wanted to try something different and use Claude code. I had the idea of comparing NYT coverage with another source. I wanted to merge my interests in art and data science into one project, so I decided to compare NYT coverage of artist. I didn't know what other API I could use to compared to, so I asked Claude to recommend a few. Claude mentioned that the MET has a free API, and I could compare coverage between The New York Times and The MET.
+For this assignment, I wanted to try something different and use Claude code. I had the idea of comparing NYT coverage with another source. I wanted to merge my interests in art and data science into one project, so I decided to focus on artist coverage. I didn't know what other APIs I could use to compared to, so I asked Claude to recommend a few. Claude mentioned that the Met has a free API, and I could compare coverage between The New York Times and The MET.
 
-I used the claude code tool to create the following API structure for the assignment. At first, Claude returned the code with little explanation, so I asked for a detailed section explaining the code and having an emphasis on the parameters used in calling the APIs.
+I used Claude code to create the following API structure for the assignment. At first, Claude returned the code with little explanation, so I asked for a detailed section explaining the code and an emphasis on the parameters used in calling the APIs.
 
 As well, I specifically asked Claude to leave out the analysis because I did not want Claude to create my entire assignment. I plan to examine how artist coverage compares between the MET and NYT over time. I chose 5 different artists to examine, that are from different time periods.
 
@@ -38,7 +38,7 @@ This section was written with Claude (Anthropic's AI assistant).
 The data comes from two APIs. The code that called them is shown below for reference, but it is not run when this document renders (`eval: false`). Its results were saved to three CSV files, and the document loads those instead, so rendering never calls the APIs.
 
 | File | Contents |
-|------------------|------------------------------------------------------|
+|------------------------------------|------------------------------------|
 | `nyt_by_year.csv` | NYT Arts articles per artist per year, plus yearly Arts totals |
 | `met_ids.csv` | Every Met object ID found for each artist |
 | `met_objects.csv` | One record per Met object (acquisition year, date, type) |
@@ -54,7 +54,7 @@ Endpoint: `https://api.nytimes.com/svc/search/v2/articlesearch.json`
 `nyt_hits()` makes one request per artist per year and keeps only the number of matching articles (`hits`), not the articles themselves.
 
 | Parameter | Value in this project | What it does |
-|--------------|--------------|--------------------------------------------|
+|------------------------|------------------------|------------------------|
 | `q` | `"Warhol"` | Search text. The quotes make it match the exact name. |
 | `fq` | `section.name:"Arts"` | Filter query. Keeps only articles from the Arts section. |
 | `begin_date` | `19810101` | First publication date to include (YYYYMMDD). |
@@ -74,7 +74,7 @@ No key is needed. The code uses two endpoints.
 **1. Search** (`/public/collection/v1.1/search`) returns the IDs of matching objects. The Met retired the original `/v1/search` on 2026-10-01, so this uses `/v1.1`.
 
 | Parameter | Value in this project | What it does |
-|---------------|---------------|------------------------------------------|
+|------------------------|------------------------|------------------------|
 | `q` | `"Andy Warhol"` | Search text. Without quotes the search is fuzzy and matches other artists. |
 | `artistOrCulture` | `true` | Search only the artist and culture fields, not titles or descriptions. |
 | `limit` | `500` | IDs per request. 500 is the most the API returns at once. |
@@ -85,7 +85,7 @@ The response contains `total` (the number of matches) and `objectIDs`. `met_obje
 **2. Object** (`/public/collection/v1/objects/{objectID}`) returns the full record for one object. `met_object()` keeps these fields:
 
 | Field | Meaning |
-|-------------------|-----------------------------------------------------|
+|------------------------------------|------------------------------------|
 | `accessionYear` | Year the Met acquired the object (used for counts by year) |
 | `objectBeginDate` | Earliest year the object was made |
 | `classification` | Type of object, such as Prints, Drawings or Paintings |
@@ -104,6 +104,7 @@ A few IDs in search results no longer exist and return 404. Those rows are saved
 #| label: setup
 library(tidyverse)
 library(httr2)
+library(ggplot2)
 
 nyt_file <- "nyt_by_year.csv"
 met_file <- "met_objects.csv"
@@ -314,4 +315,94 @@ yearly
 
 ## Analysis
 
+### Comparing NYT Coverage
+
+For my analysis, first I will look at NYT coverage over time and compare artists.
+
+```{r}
+yearly |>
+  ggplot(aes(x = year, y = nyt_articles, fill = artist)) +
+  geom_area(position = "fill") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(y = "Share of articles among the five artists",
+       x = NULL, fill = NULL)
+```
+
+The graph above shows that Andy Warhol dominates the percent share of the articles among the 5 chosen artists. After seeing this graph, I am wondering if the amount of article for the new artist's, Kahlo and Warhol, and older artist's, Goya, Rembrandt, and Durer have a similar trend.
+
+### Comparing Trend of New and Older Artist
+
+I first started by preparing the data for the visualization. For my visualization, I want to show the individual lines, as well as, a total line to show how certain artist's might be skewing the trends.
+
+```{r}
+yearly2 <- yearly |>
+  mutate(group = if_else(artist %in% c("Frida Kahlo", "Andy Warhol"),
+                         "Newer (20th century)", "Older (1400s–1800s)"))
+```
+
+```{r}
+group_totals <- yearly2 |>
+  group_by(group, year) |>
+  summarise(nyt_articles = sum(nyt_articles), .groups = "drop")
+```
+
+```{r}
+ggplot(yearly2, aes(x = year, y = nyt_articles)) +
+  geom_line(aes(color = artist), alpha = 0.5) +
+  geom_line(data = group_totals, color="black") +
+  facet_wrap(~ group) +
+  labs(y = "Total Arts articles", x = NULL, color = NULL)
+```
+
+The graph above shows similar trends between the newer and older artist: both had a spike around 2005 and then a sharp decrease since. I'm curious if this is due to a shift in NYT focus on artists, since we do not have total number of art section articles, we can't answer that question. However, we can see that the interest in the 5 chosen artists has decrease due to the number of articles mentions.
+
+### Andy Warhol Media Coverage and Art Acquisitions 
+
+It appears that Andy Warhol has the best coverage for the NYT, and I will be using him as a case study for the rest of the assignment. I want to see if there is a correlation between his piece's being acquired at the Met and his coverage in the NYT.
+
+First, I will prepare the data to compare the coverage.
+
+```{r}
+warhol_nyt <- filter(yearly, artist == "Andy Warhol")
+warhol_met <- met |>
+  filter(artist == "Andy Warhol", !is.na(accession_year)) |>
+  count(year = accession_year)
+
+vis_data <- bind_rows(
+    warhol_met |>
+      transmute(year, source = "Met acquisitions", n),
+    warhol_nyt |>
+      transmute(year, source = "NYT articles", n = nyt_articles)
+  ) |>
+  arrange(source, year) |>
+  group_by(source) |>
+  mutate(cumulative_share = cumsum(n) / sum(n)) |>
+  ungroup()
+```
+
+I decided to examine the cumulative share of the Met's acquisition of his works and share of articles that mentioned him.
+
+```{r}
+ggplot(vis_data, aes(year, cumulative_share, color = source)) +
+  geom_step(linewidth = 1) +
+  geom_vline(xintercept = 1987, linetype = "dashed") +
+  annotate("text", x = 1987, y = 1, label = "Warhol dies (1987)",
+           hjust = 1.05, size = 3) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_color_manual(values = c("Met acquisitions" = "orange",
+                                "NYT articles" = "lightblue")) +
+  labs(title = "Andy Warhol: when the Met collected him vs. when the NYT wrote about him",
+       x = NULL, y = "Cumulative share of total", color = NULL)
+```
+
+From the graph above, it appears that the Met acquired much of Warhol's work before he died, about 75% which is right around the NYT data starts. Due to this lag, it does not appear to be a strong relationship between Met acquisitions and NYT media coverage.
+
 ## Conclusion
+
+This assignment gave me a great opportunity to work with API's using Claude, but also get an understand on how the API calls work in R. It was interesting seeing how the NYT API worked very similarly to the Met API, this makes me excited to work with more APIs in the future.
+
+In terms of analysis, I found it very interesting to see the different coverage of the 5 chosen artist. I was expecting Kahlo to have more articles, and I was surprise to see Andy Warhol having the most articles out the chosen artist. My biggest surprise in the analysis was the sharp decrease in number of articles about the 5 chosen artist, as well as, the large spike for all around 2006 to 2008. I wonder if other artist's have similar trends in NYT coverage.
+
+In terms of Met versus NYT coverage, it was difficult getting enough data to compare. I chose Warhol due to his high number of pieces of artwork and NYT coverage. There did not appear to be a close relationship between NYT coverage and Met art pieces. A little under 75% of his share of art pieces at the Met were acquired before his death, and the NYT data started after. Future analysis could modify this data to get more data.
+
+When a Museum acquires a piece of art work, it often happens from donations and purchasing. This may not match directly with media coverage. Future analysis might compare Google Searches with NYT articles, this would show if the NYT covers artists more when they are socially relevant.
