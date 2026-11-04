@@ -21,7 +21,7 @@ First, I started this assignment by recreating the code in Chapter 2 of Text Min
 
 For the extension of the assignment, I plan to select articles from various news outlet to understand their sentiment towards the midterms elections. I plan to create a visual showing which news outlets had neutral, negative, and positive sentiment towards the election.
 
-To gather the data, I plan to use Claude Code to scrap the articles from the web. As well, recommend a non-bias lexicon. Choosing the wrong lexicon could create bias in my results, i.e. positive sentiment could be mistaken for neutral.
+To gather the data, I plan to use Claude Code to scrape the articles from the web. As well, recommend a non-bias lexicon. Choosing the wrong lexicon could create bias in my results, i.e. positive sentiment could be mistaken for neutral.
 
 ## Approach
 

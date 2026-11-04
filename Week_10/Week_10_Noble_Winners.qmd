@@ -19,7 +19,7 @@ format:
 
 For this assignment, I plan to answer the following questions:
 
-1.  Is there a relationship with a countries GDP per capita and their total number of Nobel Prize winners?
+1.  Is there a relationship with a country's GDP per capita and their total number of Nobel Prize winners?
 2.  Does current GDP per capita have a stronger relationship than GDP growth for total number of Nobel Prize winners?
 3.  Are laureates getting older when they win? How does the trend compare with life expectancy?
 4.  Does the laureates age when winning differ by category?
