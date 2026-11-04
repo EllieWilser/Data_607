@@ -1,0 +1,61 @@
+---
+title: "Data 607: Sentiment Analysis"
+author: "Ellie Wilser"
+editor: visual
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    code-summary: "Show code"
+    code-tools: true
+    df-print: paged
+    smooth-scroll: true
+    embed-resources: true
+---
+
+## Introduction
+
+First, I started this assignment by recreating the code in Chapter 2 of Text Mining with R. I had to download numerous libraries and text packages to get the code working properly. It was very useful to recreate the code and helped with my understanding.
+
+For the extension of the assignment, I plan to select articles from various news outlet to understand their sentiment towards the midterms elections. I plan to create a visual showing which news outlets had neutral, negative, and positive sentiment towards the election.
+
+To gather the data, I plan to use Claude Code to scrap the articles from the web. As well, recommend a non-bias lexicon. Choosing the wrong lexicon could create bias in my results, i.e. positive sentiment could be mistaken for neutral.
+
+## Approach
+
+I will first start the assignment by recreating Chapter 2 of Text Mining with R. This will allow me to better understand the basics of sentiment analysis before taking on an advanced example.
+
+After, I will prompt Claude to gather news articles about the recent midterm elections, and extract the text to be used in R. I want about 15 different news outlets, some that are local to Albany, Poughkeepsie, NYC and national news outlets. I want the news outlets to span the entire political spectrum.
+
+For this project, I will also need a non-bias lexcon which I will research using Claude, and I will focus heavily on reviewing this document.
+
+Last, I will conduct the sentiment analysis and create a few visualizations. I expect some challenges web scrapping the articles due to CSS formatting.
+
+## Reproducing
+
+```{r Reproducing Chapter 2}
+library(janeaustenr)
+library(dplyr)
+library(stringr)
+library(tidytext)
+
+tidy_books <- austen_books() %>%
+  group_by(book) %>%
+  mutate(
+    linenumber = row_number(),
+    chapter = cumsum(str_detect(text, 
+                                regex("^chapter [\\divxlc]", 
+                                      ignore_case = TRUE)))) %>%
+  ungroup() %>%
+  unnest_tokens(word, text)
+
+nrc_joy <- get_sentiments("nrc") %>% 
+  filter(sentiment == "joy")
+
+tidy_books %>%
+  filter(book == "Emma") %>%
+  inner_join(nrc_joy) %>%
+  count(word, sort = TRUE)
+```
