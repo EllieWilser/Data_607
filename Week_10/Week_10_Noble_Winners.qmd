@@ -31,3 +31,68 @@ I will start the assignment by connecting the Nobel Prize API and retrieving the
 After, I will begin preparing the data for analysis. I will have to join the GDP and Nobel Prize datasets, and create a calculated column for the laureates age when they win a nobel prize.
 
 Finally, I will be sure to answer the questions in a way tabular and with visualizations.
+
+```{r libraries}
+library(dplyr)
+library(httr2)
+library(tidyverse)
+```
+
+## Gathering Data
+
+### Nobel Prize Winners
+
+```{r Nobel-Winners-API-Function}
+first <- request("https://api.nobelprize.org/2.1/laureates") |>
+  req_url_query(nobelPrizeYear = 1940,
+                yearTo = 2025,
+                format = 'json', 
+                limit = 1) |>
+  req_perform() |>
+  resp_body_json()
+
+total <- first$meta$count
+
+get_data <- function(offset){
+  Sys.sleep(.5)
+  request('https://api.nobelprize.org/2.1/laureates') |>
+  req_url_query(
+    nobelPrizeYear = 1940,
+    yearTo = 2025,
+    format = 'json',
+    limit = 100,
+    offset = offset
+    ) |>
+  req_retry(max_tries = 4, backoff = \(i) 60) |>
+  req_perform() |>
+  resp_body_json() |>
+  pluck("laureates")
+}
+```
+
+```{r Nobel-Winners-API-Func-Call}
+offsets <- seq(0,total-1,by=100)
+laureates_raw <- map(offsets,get_data) |>
+  list_flatten()
+```
+
+
+```{r Tidying-Nobel}
+laureates <- tibble(laureate = laureates_raw) |>
+  hoist(laureate,
+        id = "id",
+        name = list("knownName", "en"),
+        org_name = list("orgName", "en"),
+        gender = "gender",
+        birth_date = list("birth", "date"),
+        prizes = "nobelPrizes") |>
+  select(-laureate) |>
+  mutate(name = coalesce(name, org_name)) |>
+  unnest_longer(prizes) |>
+  hoist(prizes,
+        award_year = "awardYear",
+        category   = list("category", "en"),
+        share      = "portion") |>
+  select(-prizes, -org_name) |>
+  mutate(award_year = as.integer(award_year))
+```

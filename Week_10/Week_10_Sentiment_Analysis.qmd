@@ -31,15 +31,34 @@ After, I will prompt Claude to gather news articles about the recent midterm ele
 
 For this project, I will also need a non-bias lexcon which I will research using Claude, and I will focus heavily on reviewing this document.
 
-Last, I will conduct the sentiment analysis and create a few visualizations. I expect some challenges web scrapping the articles due to CSS formatting.
+Last, I will conduct the sentiment analysis and create a few visualizations. I expect some challenges web scrapping the articles due to CSS formatting. I want to focus on creating the the sentiment analysis without AI. I plan to use the strategy of asking AI how to do something without giving the code.
 
-## Reproducing
+For visualizations, I want to guide the creativity behind them and not rely on Claude to do the idea generation. I find human creativity one of the most important skills in data science.
 
-```{r Reproducing Chapter 2}
+## Libraring
+
+```{r Loading Libraries, message=FALSE}
+library(tidyverse)
 library(janeaustenr)
 library(dplyr)
 library(stringr)
+library(tibble)
+library(readr)
+library(rvest)
+library(httr2)
+library(xml2)
+library(stringr)
+library(gt)
+library(ggplot2)
+library(ggimage)
 library(tidytext)
+```
+
+## Reproducing
+
+First, I will reproduced the example of unnesting the lists in the austen books data set. I focused on this part of the code because I've never worded with nested columns before.
+
+```{r Reproducing Chapter 2}
 
 tidy_books <- austen_books() %>%
   group_by(book) %>%
@@ -59,3 +78,600 @@ tidy_books %>%
   inner_join(nrc_joy) %>%
   count(word, sort = TRUE)
 ```
+
+## Data Collection: Midterm Election Articles
+
+::: callout-note
+This section was generated with Claude (Opus 5.5)
+:::
+
+The 2026 midterm elections were held on November 3, 2026. The articles below were published between November 3 and 5, 2026 and were chosen to cover national outlets from across the political spectrum, plus local outlets in New York City, Albany and the Hudson Valley (Poughkeepsie area).
+
+The `approx_lean` column is an approximate placement based on published media-bias ratings (AllSides, Ad Fontes Media and Media Bias/Fact Check). AllSides and Ad Fontes mostly rate national outlets, so the local outlets are placed using Media Bias/Fact Check (MBFC), mapping its scale onto the same five categories: Left-Center = Lean Left, Least Biased = Center, Right-Center = Lean Right.
+
+| Outlet | Region | MBFC rating (score) | Placed as | Basis |
+|---------------|---------------|---------------|---------------|---------------|
+| Times Union | Albany | Left-Center (-2.4) | Lean Left | Straight news rated low bias; editorials lean left (endorsed Clinton in 2016). Owned by Hearst. [MBFC](https://mediabiasfactcheck.com/albany-times-union) |
+| WAMC | Albany | Left-Center (-3.0) | Lean Left | NPR member station; story selection "slightly favors the left." [MBFC](https://mediabiasfactcheck.com/wamc-npr-albany-bias-and-credibility/) |
+| CBS6 Albany (WRGB) | Albany | Right-Center (+2.5) | Lean Right | Owned by Sinclair Broadcast Group; local news minimal bias, political reporting slightly favors the right. [MBFC](https://mediabiasfactcheck.com/wrgb-albany-bias/) |
+| Spectrum News | Hudson Valley / statewide | Least Biased (-0.9) | Center | Owned by Charter; no opinion pieces, republishes AP. [MBFC](https://mediabiasfactcheck.com/spectrum-news-central-new-york-bias-and-credibility/) |
+| Mid-Hudson News | Hudson Valley | No MBFC page | Center (low confidence) | Ground News's aggregate of rating sources lists it as Center, with Low factuality. [Ground News](https://ground.news/interest/mid-hudson-news) |
+
+Mid-Hudson News is the weakest placement: no rating service publishes a full review of it, so the Center label comes only from Ground News's aggregate.
+
+A right-leaning New York City article from the New York Sun (id 5) was planned but dropped, because it is behind a membership paywall. That leaves 16 outlets.
+
+### Source URLs
+
+```{r article-sources}
+article_sources <- tribble(
+  ~id, ~outlet,               ~region,         ~approx_lean,       ~url,
+  1,  "Fox News",             "National",      "Right",            "https://www.foxnews.com/media/conservatives-stunned-catastrophic-midterm-blue-tsunami-blame-trumps-iran-war-high-gas-prices",
+  2,  "Breitbart",            "National",      "Right",            "https://www.breitbart.com/politics/2026/11/04/vance-republicans-lost-midterms-because-of-iran-war/",
+  3,  "National Review",      "National",      "Right",            "https://www.nationalreview.com/2026/11/trumps-midterm-disaster/",
+  4,  "Washington Examiner",  "National",      "Lean Right",       "https://www.washingtonexaminer.com/news/campaigns/4791815/takeaways-2026-midterm-elections/",
+  6,  "The Hill",             "National",      "Center",           "https://thehill.com/newsletters/morning-report/6200194-2026-midterms-results-iran-war-donald-trump-democrats/",
+  7,  "CNBC",                 "National",      "Center",           "https://www.cnbc.com/2026/11/04/trump-midterm-election-results-congress.html",
+  8,  "CBS News",             "National",      "Lean Left",        "https://www.cbsnews.com/news/republican-losses-roil-gop-midterms-vance-cruz-desantis/",
+  9,  "NPR",                  "National",      "Lean Left",        "https://www.npr.org/2026/11/04/nx-s1-6022216/midterms-democrats-trump-republicans-analysis",
+  10, "Rolling Stone",        "National",      "Left",             "https://www.rollingstone.com/politics/politics-news/gerrymander-dummymander-republicans-midterms-1235653320/",
+  11, "MS NOW (MSNBC)",       "National",      "Left",             "https://www.ms.now/news/news-analysis/2026-midterm-election-takeaways-results-trump",
+  12, "Gothamist",            "New York City", "Lean Left",        "https://gothamist.com/news/four-takeaways-after-democrats-big-night-in-new-york",
+  13, "Times Union",          "Albany",        "Lean Left",  "https://www.timesunion.com/capitol/article/five-election-takeaways-democrats-win-big-across-22506633.php",
+  14, "WAMC",                 "Albany",        "Lean Left",  "https://www.wamc.org/news/2026-11-03/election-2026-new-york-kathy-hochul-wins-reelection-governor",
+  15, "CBS6 Albany (WRGB)",   "Albany",        "Lean Right",  "https://cbs6albany.com/news/local/new-york-turns-deeper-blue-as-democrats-add-five-senate-seats-and-near-supermajority",
+  16, "Spectrum News",        "Hudson Valley", "Center",  "https://spectrumlocalnews.com/nys/central-ny/news/2026/11/03/lawler--conley-in-ny-17-",
+  17, "Mid-Hudson News",      "Hudson Valley", "Center",  "https://midhudsonnews.com/2026/11/04/dems-increase-majority-in-dutchess-legislature/"
+)
+
+write_csv(article_sources, "midterm_article_sources.csv")
+article_sources
+```
+
+### Scraping the Article Text
+
+Every news site uses different HTML and CSS, so one CSS selector will not work everywhere. The scraper below tries a site-specific selector first (where I know one), then falls back to general selectors (`article p`, `[itemprop='articleBody'] p`, `main p`, then every `<p>` on the page). It keeps the first selector that returns at least 800 characters of text, drops short lines and boilerplate (newsletter prompts, "click here" links, copyright lines), and pulls the publish date from the page metadata.
+
+Some sites block plain scripted requests (HTTP 403), rate-limit them (HTTP 429), or load the article with JavaScript, so the first pass misses them. For those, the scraper retries in a real headless Chrome browser using `rvest::read_html_live()`, which needs the `chromote` package and Google Chrome installed. If an article still fails, the status column says so, and you can paste the text by hand into `articles_manual/<id>.txt`; the scraper then uses that file instead of the web page.
+
+The full scrape only runs when `midterm_articles.csv` does not exist yet (or when `refresh_scrape` is set to `TRUE`), so rendering the document does not hit the news sites every time. When the CSV already exists, the chunk does not go back to the web at all (unless `retry_failed` is set to `TRUE`). It only reads any hand-pasted files in `articles_manual/`, so it runs in seconds. Every render also re-applies the boilerplate filter to the saved text, so improving the filter does not require scraping again.
+
+```{r scrape-articles}
+#| eval: false
+
+refresh_scrape <- FALSE   # TRUE = scrape every article again from scratch
+retry_failed   <- FALSE   # TRUE = re-scrape only the rows whose status is not "ok"
+articles_file  <- "midterm_articles.csv"
+manual_dir     <- "articles_manual"
+
+# Site-specific selectors, tried before the general fallbacks
+site_selectors <- c(
+  "foxnews.com"         = "div.article-body p",
+  "breitbart.com"       = "div.entry-content p",
+  "cnbc.com"            = "div.ArticleBody-articleBody p",
+  "npr.org"             = "#storytext > p",
+  "thehill.com"         = "div.article__text p",
+  "cbsnews.com"         = "section.content__body p",
+  "wamc.org"            = "div.RichTextArticleBody p",
+  "midhudsonnews.com"   = "div.entry-content p"
+)
+
+fallback_selectors <- c("article p", "[itemprop='articleBody'] p", "main p", "body p")
+
+boilerplate <- regex(paste(
+  "click here", "sign up", "subscribe", "newsletter", "advertisement",
+  "all rights reserved", "copyright", "fox news app", "read more",
+  "follow us", "this material may not be published", "^related:",
+  "^watch:", "^listen:", "^updated on:",
+  # photo credits and captions
+  "hide caption", "getty images", "ap photo", "photo by", "photograph:",
+  # donation and newsletter prompts, site footers
+  "donate today", "donate now", "make a donation", "make your contribution", "funded by sponsors", "inbox",
+  "npr does not offer", "data is delayed", "real-time snapshot",
+  "global business and financial news", "can be sent to", "where other reporters",
+  "civic center plaza", "for over 25 years", "email protected",
+  "dialog window", "^deadline: white house", "^money, power, politics",
+  "everything ms now", "discover the shows",
+  "[[:alnum:]._-]+@[[:alnum:].-]+\\.(com|org|net)",   # email addresses
+  sep = "|"), ignore_case = TRUE)
+
+fetch_page <- function(url) {
+  request(url) %>%
+    req_user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36") %>%
+    req_timeout(30) %>%
+    req_retry(max_tries = 2, max_seconds = 20) %>%   # never wait long on a 429 "Retry-After"
+    req_perform() %>%
+    resp_body_string() %>%
+    read_html()
+}
+
+# Second attempt for blocked or JavaScript-heavy pages: load the page in a
+# real headless Chrome, wait for it to finish, then parse the rendered HTML.
+options(chromote.timeout = 60)   # news pages with heavy ads can take >10 s to load
+
+fetch_page_live <- function(url, wait = 6) {
+  live <- read_html_live(url)
+  on.exit(try(live$session$close(), silent = TRUE), add = TRUE)
+  Sys.sleep(wait)
+  html <- live$session$Runtime$evaluate("document.documentElement.outerHTML")$result$value
+  read_html(html)
+}
+
+clean_paragraphs <- function(paras) {
+  paras %>%
+    str_squish() %>%
+    discard(~ nchar(.x) < 40) %>%           # captions, bylines, share buttons
+    discard(~ str_detect(.x, boilerplate)) %>%
+    unique()
+}
+
+extract_text <- function(page, url) {
+  domain <- str_remove(url_parse(url)$hostname, "^www\\.")
+  selectors <- c(unname(site_selectors[domain]), fallback_selectors)
+  selectors <- selectors[!is.na(selectors)]
+
+  for (sel in selectors) {
+    paras <- page %>% html_elements(sel) %>% html_text2() %>% clean_paragraphs()
+    if (sum(nchar(paras)) >= 800) {
+      return(list(text = str_c(paras, collapse = "\n\n"), selector = sel))
+    }
+  }
+  list(text = NA_character_, selector = NA_character_)
+}
+
+extract_title <- function(page) {
+  og <- page %>% html_element("meta[property='og:title']") %>% html_attr("content")
+  if (!is.na(og)) return(str_squish(og))
+  page %>% html_element("h1") %>% html_text2() %>% str_squish()
+}
+
+extract_date <- function(page) {
+  candidates <- c(
+    page %>% html_element("meta[property='article:published_time']") %>% html_attr("content"),
+    page %>% html_element("meta[name='date']") %>% html_attr("content"),
+    page %>% html_element("time[datetime]") %>% html_attr("datetime"),
+    page %>% html_text() %>% str_extract('(?<="datePublished":\\s?")[^"]+')
+  )
+  first_date <- candidates[!is.na(candidates)][1]
+  if (is.na(first_date)) return(NA_character_)
+  str_sub(first_date, 1, 10)   # keep YYYY-MM-DD
+}
+
+scrape_article <- function(id, url) {
+  manual_file <- file.path(manual_dir, paste0(id, ".txt"))
+  if (file.exists(manual_file)) {
+    text <- read_file(manual_file) %>% str_squish()
+    return(tibble(title = NA_character_, date = NA_character_,
+                  text = text, selector = "manual", status = "ok (manual)"))
+  }
+
+  try_fetch <- function(fetcher, method) {
+    tryCatch({
+      page <- fetcher(url)
+      body <- extract_text(page, url)
+      tibble(title = extract_title(page), date = extract_date(page),
+             text = body$text, selector = body$selector,
+             status = if (is.na(body$text)) paste0("too short (", method, ")")
+                      else if (method == "static") "ok" else "ok (browser)")
+    }, error = function(e) {
+      tibble(title = NA_character_, date = NA_character_, text = NA_character_,
+             selector = NA_character_,
+             status = paste0("failed (", method, "): ", cli::ansi_strip(conditionMessage(e))))
+    })
+  }
+
+  Sys.sleep(2)   # be polite to the servers
+  result <- try_fetch(fetch_page, "static")
+
+  if (!str_starts(result$status, "ok")) {
+    if (requireNamespace("chromote", quietly = TRUE)) {
+      Sys.sleep(5)   # extra pause, in case the site rate-limited us (HTTP 429)
+      result <- try_fetch(fetch_page_live, "browser")
+    } else {
+      result$status <- paste(result$status, "| browser retry skipped: install.packages('chromote')")
+    }
+  }
+  result
+}
+
+# Re-apply the current boilerplate filter to text that was already scraped
+reclean_text <- function(text) {
+  if (is.na(text)) return(NA_character_)
+  paras <- str_split(text, "\n\n")[[1]] %>% clean_paragraphs()
+  if (length(paras) == 0) NA_character_ else str_c(paras, collapse = "\n\n")
+}
+
+scrape_rows <- function(sources) {
+  sources %>%
+    mutate(scraped = map2(id, url, scrape_article)) %>%
+    unnest(scraped)
+}
+
+if (refresh_scrape || !file.exists(articles_file)) {
+  midterm_articles <- scrape_rows(article_sources)
+} else {
+  midterm_articles <- read_csv(articles_file, show_col_types = FALSE,
+                               col_types = cols(.default = col_character(), id = col_double()))
+
+  # Optional: retry failed rows over the network (slow; off by default)
+  failed_ids <- midterm_articles %>% filter(!str_starts(status, "ok")) %>% pull(id)
+  if (retry_failed && length(failed_ids) > 0) {
+    retried <- scrape_rows(filter(article_sources, id %in% failed_ids))
+    midterm_articles <- midterm_articles %>%
+      filter(!id %in% failed_ids) %>%
+      select(any_of(names(retried))) %>%
+      bind_rows(retried) %>%
+      arrange(id)
+  }
+
+  # Hand-pasted text in articles_manual/<id>.txt replaces that row's text.
+  # This step reads local files only, so it runs instantly.
+  manual_files <- list.files(manual_dir, pattern = "^[0-9]+\\.txt$", full.names = TRUE)
+  for (f in manual_files) {
+    manual_id <- as.numeric(str_remove(basename(f), "\\.txt$"))
+    manual_text <- read_file(f) %>%
+      str_replace_all("\\r\\n", "\\n") %>%
+      str_split("\\n\\s*\\n") %>% .[[1]] %>%      # keep paragraph breaks
+      str_squish() %>%
+      str_c(collapse = "\n\n")
+    midterm_articles <- midterm_articles %>%
+      mutate(text     = if_else(id == manual_id, manual_text, text),
+             selector = if_else(id == manual_id, "manual", selector),
+             status   = if_else(id == manual_id, "ok (manual)", status))
+  }
+}
+
+midterm_articles <- midterm_articles %>%
+  semi_join(article_sources, by = "id") %>%   # drop outlets removed from the source list
+  mutate(text    = map_chr(text, reclean_text),
+         n_words = str_count(text, "\\S+"))
+
+write_csv(midterm_articles, articles_file)
+```
+
+### Reading the Scraped Articles
+
+The scrape above is shown for reference but does not run when the document renders. The analysis reads the saved CSV instead, so rendering is fast and the article text stays the same every time.
+
+```{r read-articles}
+midterm_articles <- read_csv("midterm_articles.csv", show_col_types = FALSE) |>
+  # take the lean labels from article_sources, so updated ratings apply
+  # without scraping again
+  select(-approx_lean) |>
+  left_join(select(article_sources, id, approx_lean), by = "id") |>
+  relocate(approx_lean, .after = region)
+```
+
+### Checking the Scrape
+
+Before any analysis, check that every article was collected and that the word counts look like full articles rather than a teaser paragraph.
+
+```{r check-scrape}
+midterm_articles %>%
+  select(id, outlet, region, approx_lean, date, n_words, selector, status)
+```
+
+Any row whose status is not "ok" should be fixed by hand (save the text to `articles_manual/<id>.txt`, then re-run the scrape chunk; the pasted text replaces that row without any web request). Live blogs are a poor fit: the first MS NOW link was a live blog that scraped to about 37,000 words of updates plus a privacy banner, so it was replaced with MS NOW's single takeaways article. It is worth reading the first few hundred words of each article to confirm the scrape captured the story and not the page navigation.
+
+```{r preview-text}
+midterm_articles %>%
+  transmute(outlet, preview = str_trunc(text, 300))
+```
+
+## Analysis
+
+After Claude found and read in the articles about the recent midterms. I took over coding, and created the rest of the analysis sections besides the Bing Lexicon testing.
+
+The lexicon I decided to use first for this assignment is **AFINN** (Nielsen, 2011). This lexicon works well for elections due to it's low amount of words that would contaminate the overall election source. As well, it is integrated into the tidyverse.
+
+Before conducting analysis, I want to set my threshold for neutrality: A net AFINN score between -1 and +1 per 100 words of article text.
+
+I score per 100 words of the whole article, not per scored word, so that neutral words (which AFINN does not score) count as 0 and pull the score toward neutral. Due to the higher count of negative words in AFINN, I will also compare the news outlets to each other (centered on the average outlet) instead of only to a 0 baseline.
+
+I will start my loading my lexicon, and then cleaning the articles by removing contaminated words like "won", "winning", and "loss".
+
+### Loading Lexicon and Removing Skewed Words
+
+```{r Loading-Lexicon}
+
+# Starting with AFINN
+get_sentiments("afinn") |> count(direction = sign(value))
+
+#Common elections words in AFINN
+election_words <- c("win", "won", "lost", "loss", "stunning", "war","won", "lost", "win", "winning", "wins", "winner", "defeated", "losing", "loss", "gains", "gain", "secured", "outstanding","approval", "poised","like")
+
+#Remove nuetral words from Lexicon
+afinn_filtered <- get_sentiments("afinn") |>
+  anti_join(tibble(word = election_words), by = "word")
+```
+
+### Preparing Data
+
+```{r preparing-data}
+# Total words in each article
+article_words <- midterm_articles |>
+  unnest_tokens(word, text) |>
+  count(outlet, name = "total_words")
+
+tidy_articles <- midterm_articles |>
+  unnest_tokens(word, text) |>
+  anti_join(stop_words, by = "word")
+```
+
+### Sentiment and Sourcing Outlets
+
+```{r joining-to-afinn}
+#Joins Sentiment onto the article by words
+sentiment_by_word <- tidy_articles |>
+  inner_join(afinn_filtered, by = "word")
+
+#Creates cunts for future analysis
+sentiment_count <- sentiment_by_word |> 
+  count(outlet, word, value, sort = TRUE)
+```
+
+```{r scoring}
+
+#Calculates net score, avg score and a score per 100 words
+outlet_scores <- sentiment_by_word |>
+  group_by(outlet, approx_lean, region) |>
+  summarise(
+    scored_words = n(),
+    net_score    = sum(value),
+    avg_score    = mean(value),
+    .groups = "drop"
+  ) |>
+  left_join(article_words, by = "outlet") |>
+  mutate(
+    score_per_100  = 100 * net_score / total_words, 
+    sentiment      = case_when(
+      score_per_100 >  1 ~ "Positive",
+      score_per_100 < -1 ~ "Negative",
+      TRUE               ~ "Neutral"
+    )
+  ) |>
+  arrange(desc(score_per_100))
+```
+
+```{r table-output}
+outlet_scores |>
+  select(outlet,approx_lean,score_per_100, sentiment) |>
+  gt() |>
+  tab_header(title="Outlet Sentiment") |>
+  tab_options(
+    column_labels.background.color = "lightblue"
+  )
+  
+```
+
+```{r top-scored-word}
+top_words <- sentiment_by_word |>
+  count(outlet, word, value) |>
+  mutate(contribution = value * n) |>
+  group_by(outlet) |>
+  slice_max(abs(contribution), n = 1, with_ties = FALSE) |>
+  ungroup()
+
+top_words |> 
+  select(outlet,word,contribution) |>
+  gt() |>
+  tab_header(title="Most Impactful Words to Contribution") |>
+  tab_options(
+    column_labels.background.color = "lightblue"
+  )
+```
+
+### Robustness Check: Bing Lexicon
+
+::: callout-note
+This section was generated with Claude (Opus 5.5)
+:::
+
+To check that the results are not driven by the choice of lexicon, I repeat the scoring with the Bing lexicon (Hu & Liu, 2004). Bing labels each word only as positive or negative, so each positive word counts as +1 and each negative word as -1. I remove the same skewed election words, plus "trump", which Bing may list as a positive word. Scores are again per 100 words of article text, with the same -1 to +1 neutral band.
+
+Because Bing scores every word as +1 or -1 while AFINN goes from -5 to +5, the two scales are not identical. The comparison that matters is whether each outlet lands in the same category and in a similar order.
+
+```{r bing-lexicon}
+bing <- get_sentiments("bing") |>
+  filter(!word %in% c(election_words, "trump"))
+
+bing |> count(sentiment)
+```
+
+```{r bing-scoring}
+bing_scores <- tidy_articles |>
+  inner_join(bing, by = "word") |>
+  count(outlet, sentiment) |>
+  tidyr::pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) |>
+  left_join(article_words, by = "outlet") |>
+  mutate(
+    bing_per_100  = 100 * (positive - negative) / total_words,
+    bing_sentiment = case_when(
+      bing_per_100 >  1 ~ "Positive",
+      bing_per_100 < -1 ~ "Negative",
+      TRUE              ~ "Neutral"
+    )
+  )
+```
+
+```{r lexicon-comparison}
+lexicon_comparison <- outlet_scores |>
+  select(outlet, approx_lean, score_per_100, sentiment) |>
+  left_join(select(bing_scores, outlet, bing_per_100, bing_sentiment), by = "outlet") |>
+  mutate(same_category = sentiment == bing_sentiment) |>
+  arrange(desc(score_per_100))
+
+lexicon_comparison |>
+  gt() |>
+  tab_header(title = "AFINN vs. Bing Sentiment by Outlet") |>
+  cols_label(
+    outlet = "Outlet", approx_lean = "Lean",
+    score_per_100 = "AFINN per 100 words", sentiment = "AFINN",
+    bing_per_100 = "Bing per 100 words", bing_sentiment = "Bing",
+    same_category = "Same category?"
+  ) |>
+  fmt_number(columns = c(score_per_100, bing_per_100), decimals = 2) |>
+  tab_options(column_labels.background.color = "lightblue")
+
+# How closely the two lexicons rank the outlets (1 = identical order)
+cor(lexicon_comparison$score_per_100, lexicon_comparison$bing_per_100,
+    method = "spearman")
+```
+
+## Visualizations
+
+::: callout-note
+This section was created in collaboration with Claude (Opus 5.5)
+:::
+
+### Comparing the Lexicons
+
+The first graph I created showed the 2 different lexicons with a neutral band. This graph show the uncertain we have towards classifying the tone of the articles. The only classifications we can be confident that are positive or negative, are Fox News and the Times Union. Since both lexicon agreed on classifications.
+
+```{r lexicon-comparison-chart}
+#| fig-width: 9
+#| fig-height: 7
+
+lexicon_long <- lexicon_comparison |>
+  mutate(outlet = reorder(outlet, score_per_100)) |>
+  pivot_longer(c(score_per_100, bing_per_100),
+               names_to = "lexicon", values_to = "score") |>
+  mutate(lexicon = if_else(lexicon == "score_per_100", "AFINN", "Bing"))
+
+ggplot(lexicon_long, aes(x = score, y = outlet)) +
+  annotate("rect", xmin = -1, xmax = 1, ymin = -Inf, ymax = Inf,
+           fill = "grey90") +
+  geom_vline(xintercept = 0, colour = "grey60") +
+  geom_line(aes(group = outlet), colour = "grey55", linewidth = 0.8) +
+  geom_point(aes(colour = lexicon), size = 3.5) +
+  scale_colour_manual(values = c(AFINN = "#2a6fb0", Bing = "#e08a2c")) +
+  labs(
+    title = "AFINN vs. Bing sentiment by outlet",
+    subtitle = "Net sentiment per 100 words; shaded band = neutral (-1 to +1)",
+    x = "Sentiment score per 100 words", y = NULL, colour = "Lexicon"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top", panel.grid.minor = element_blank())
+```
+
+### Sentiment Across the Political Spectrum (AFINN)
+
+I use AFINN for this chart because it is my primary lexicon. Each outlet is placed by its approximate lean on the x-axis and its AFINN score per 100 words on the y-axis. The vertical line at Center and the horizontal line at 0 split the chart into four quadrants: left-leaning outlets with positive or negative coverage, and right-leaning outlets with positive or negative coverage.
+
+Local outlets (Gothamist, Times Union, WAMC, CBS6, Spectrum News, Mid-Hudson News) are placed using the ratings in the Data Collection section and have their names shown in teal.
+
+The logos are each outlet's site icon, downloaded once into a `logos/` folder.
+
+```{r download-logos}
+logo_dir <- "logos"
+dir.create(logo_dir, showWarnings = FALSE)
+
+outlet_logos <- article_sources |>
+  mutate(
+    domain = str_remove(str_extract(url, "(?<=https://)[^/]+"), "^www\\."),
+    logo   = file.path(logo_dir, paste0(id, ".png"))
+  ) |>
+  select(outlet, domain, logo)
+
+# Download each site's icon only if it is not already saved
+walk2(outlet_logos$domain, outlet_logos$logo, function(domain, file) {
+  if (!file.exists(file)) {
+    icon_url <- paste0("https://www.google.com/s2/favicons?domain=", domain, "&sz=128")
+    try(download.file(icon_url, file, mode = "wb", quiet = TRUE), silent = TRUE)
+  }
+})
+```
+
+```{r spectrum-quadrant-chart}
+#| fig-width: 11
+#| fig-height: 7.5
+library(ggrepel)
+
+lean_scale <- c("Left" = -2, "Lean Left" = -1, "Center" = 0,
+                "Lean Right" = 1, "Right" = 2)
+
+spectrum_data <- outlet_scores |>
+  filter(approx_lean %in% names(lean_scale)) |>
+  left_join(outlet_logos, by = "outlet") |>
+  mutate(lean_x = lean_scale[approx_lean],
+         coverage = if_else(region == "National", "National", "Local (NYC, Albany, Hudson Valley)")) |>
+  group_by(approx_lean) |>
+  # spread outlets that share a lean so their logos do not overlap
+  mutate(lean_x = lean_x + (row_number() - (n() + 1) / 2) * 0.3) |>
+  ungroup()
+
+y_max <- max(abs(spectrum_data$score_per_100))
+y_lim <- y_max * 1.3
+quadrant_text <- "grey55"
+
+ggplot(spectrum_data, aes(x = lean_x, y = score_per_100)) +
+  # neutral band, labelled in place instead of in the subtitle
+  annotate("rect", xmin = -Inf, xmax = Inf, ymin = -1, ymax = 1,
+           fill = "grey94") +
+  annotate("text", x = 2.6, y = 1, label = "Neutral band (-1 to +1)",
+           hjust = 1, vjust = -0.5, size = 3, colour = quadrant_text) +
+  geom_hline(yintercept = 0, colour = "grey50", linewidth = 0.4) +
+  geom_vline(xintercept = 0, colour = "grey50", linewidth = 0.4) +
+  # quadrant names in the corners, quiet so they do not compete with the data
+  annotate("text", x = -2.6, y =  y_lim, label = "Left-leaning, positive",
+           hjust = 0, vjust = 1, size = 3.3, colour = quadrant_text, fontface = "italic") +
+  annotate("text", x =  2.6, y =  y_lim, label = "Right-leaning, positive",
+           hjust = 1, vjust = 1, size = 3.3, colour = quadrant_text, fontface = "italic") +
+  annotate("text", x = -2.6, y = -y_lim, label = "Left-leaning, negative",
+           hjust = 0, vjust = 0, size = 3.3, colour = quadrant_text, fontface = "italic") +
+  annotate("text", x =  2.6, y = -y_lim, label = "Right-leaning, negative",
+           hjust = 1, vjust = 0, size = 3.3, colour = quadrant_text, fontface = "italic") +
+  geom_image(aes(image = logo), size = 0.05, asp = 11 / 7.5) +
+  # outlet names: national in dark grey, local in teal (no boxes)
+  geom_text_repel(aes(label = outlet, colour = coverage),
+                  size = 3, nudge_y = y_lim * 0.15, box.padding = 0.45,
+                  segment.colour = "grey75", segment.size = 0.3,
+                  min.segment.length = 0.4, seed = 607, show.legend = FALSE) +
+  # invisible points that only drive the legend (a coloured square per group)
+  geom_point(aes(colour = coverage), alpha = 0) +
+  scale_colour_manual(values = c("National" = "grey20",
+                                 "Local (NYC, Albany, Hudson Valley)" = "#13756b"),
+                      name = NULL) +
+  guides(colour = guide_legend(override.aes = list(alpha = 1, shape = 15, size = 4))) +
+  scale_x_continuous(breaks = unname(lean_scale), labels = names(lean_scale),
+                     limits = c(-2.6, 2.6)) +
+  scale_y_continuous(limits = c(-y_lim, y_lim)) +
+  labs(
+    title = "Midterm coverage sentiment by outlet lean",
+    subtitle = "AFINN net sentiment per 100 words, election-outcome words removed",
+    x = "Approximate political lean",
+    y = "Sentiment per 100 words",
+    caption = paste(
+      "Lean: AllSides, Ad Fontes Media and Media Bias/Fact Check;",
+      "Mid-Hudson News from the Ground News aggregate (low confidence)."
+    )
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    plot.title.position = "plot",
+    plot.title   = element_text(face = "bold"),
+    plot.subtitle = element_text(colour = "grey35"),
+    plot.caption = element_text(colour = "grey45", size = 9, hjust = 0),
+    plot.caption.position = "plot",
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor   = element_blank(),
+    panel.grid.major.y = element_line(colour = "grey92"),
+    axis.text.x = element_text(colour = "grey25", size = 11),
+    legend.position = "top",
+    legend.justification = "left"
+  )
+```
+
+## Conclusion
+
+This assignment gave me great experience working with unnesting columns and conducting sentiment analysis. The idea for my assignment was ambitious and due to time requirements I rely on Claude for a majority of the code behind the webscrapping and the visualizations.
+
+### Findings
+
+I went into this assignment and analysis attempting to be as non-bias as possible. Part of this was using 2 different lexicon's. Both Lexicon's saw Fox News as an outlier compared to the other news outlet. Fox New's had a strong negative sentiment for the midterm elections, and there was not a comparable outlet on the positive side of the sentiment spectrum.
+
+This analysis does not classify any outlet as trustworthy or not, but it shows the use of language that has a strong sentiment. Fox News being an outlier shows that their language around the midterms was very negative and is due to them using many quotes from conservative news anchors.
+
+### Recommendations
+
+This is a topic that I'm very interested in, and I could see myself doing further analysis for a project. I would focus on using additional articles that span time. I'm curious to see how sentiment in the news has changed in the past 10 years.
