@@ -3948,7 +3948,7 @@ Note
 <p>After Claude found and read in the articles about the recent midterms. I took over coding, and created the rest of the analysis sections besides the Bing Lexicon testing.</p>
 <p>The lexicon I decided to use first for this assignment is <strong>AFINN</strong> (Nielsen, 2011). This lexicon works well for elections due to it’s low amount of words that would contaminate the overall election source. As well, it is integrated into the tidyverse.</p>
 <p>Before conducting analysis, I want to set my threshold for neutrality: A net AFINN score between -1 and +1 per 100 words of article text.</p>
-<p>I score per 100 words of the whole article, not per scored word, so that neutral words (which AFINN does not score) count as 0 and pull the score toward neutral. Due to the higher count of negative words in AFINN, I will also compare the news outlets to each other (centered on the average outlet) instead of only to a 0 baseline.</p>
+<p>I used score per 100 words of the whole article, not per scored word, so that neutral words count as 0 and pull the score toward neutral. Due to the higher count of negative words in AFINN, I will also compare the news outlets to each other (centered on the average outlet) instead of only to a 0 baseline.</p>
 <p>I will start my loading my lexicon, and then cleaning the articles by removing contaminated words like “won”, “winning”, and “loss”.</p>
 <section id="loading-lexicon-and-removing-skewed-words" class="level3">
 <h3 class="anchored" data-anchor-id="loading-lexicon-and-removing-skewed-words">Loading Lexicon and Removing Skewed Words</h3>
@@ -3962,10 +3962,10 @@ Note
   </script>
 </div>
 </div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#Common elections words in AFINN</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>election_words <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;win&quot;</span>, <span class="st">&quot;won&quot;</span>, <span class="st">&quot;lost&quot;</span>, <span class="st">&quot;loss&quot;</span>, <span class="st">&quot;stunning&quot;</span>, <span class="st">&quot;war&quot;</span>,<span class="st">&quot;won&quot;</span>, <span class="st">&quot;lost&quot;</span>, <span class="st">&quot;win&quot;</span>, <span class="st">&quot;winning&quot;</span>, <span class="st">&quot;wins&quot;</span>, <span class="st">&quot;winner&quot;</span>, <span class="st">&quot;defeated&quot;</span>, <span class="st">&quot;losing&quot;</span>, <span class="st">&quot;loss&quot;</span>, <span class="st">&quot;gains&quot;</span>, <span class="st">&quot;gain&quot;</span>, <span class="st">&quot;secured&quot;</span>, <span class="st">&quot;outstanding&quot;</span>,<span class="st">&quot;approval&quot;</span>, <span class="st">&quot;poised&quot;</span>,<span class="st">&quot;like&quot;</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Common elections words in AFINN</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>election_words <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;win&quot;</span>, <span class="st">&quot;won&quot;</span>, <span class="st">&quot;lost&quot;</span>, <span class="st">&quot;loss&quot;</span>, <span class="st">&quot;stunning&quot;</span>, <span class="st">&quot;war&quot;</span>,<span class="st">&quot;won&quot;</span>, <span class="st">&quot;lost&quot;</span>, <span class="st">&quot;win&quot;</span>,<span class="st">&quot;winning&quot;</span>, <span class="st">&quot;wins&quot;</span>, <span class="st">&quot;winner&quot;</span>, <span class="st">&quot;defeated&quot;</span>, <span class="st">&quot;losing&quot;</span>, <span class="st">&quot;loss&quot;</span>, <span class="st">&quot;gains&quot;</span>, <span class="st">&quot;gain&quot;</span>, <span class="st">&quot;secured&quot;</span>, <span class="st">&quot;outstanding&quot;</span>,<span class="st">&quot;approval&quot;</span>, <span class="st">&quot;poised&quot;</span>,<span class="st">&quot;like&quot;</span>)</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co">#Remove nuetral words from Lexicon</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove neutral words from Lexicon</span></span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>afinn_filtered <span class="ot">&lt;-</span> <span class="fu">get_sentiments</span>(<span class="st">&quot;afinn&quot;</span>) <span class="sc">|&gt;</span></span>
 <span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(<span class="fu">tibble</span>(<span class="at">word =</span> election_words), <span class="at">by =</span> <span class="st">&quot;word&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -3990,7 +3990,7 @@ Note
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>sentiment_by_word <span class="ot">&lt;-</span> tidy_articles <span class="sc">|&gt;</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(afinn_filtered, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>)</span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Creates cunts for future analysis</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">#Creates counts for future analysis</span></span>
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>sentiment_count <span class="ot">&lt;-</span> sentiment_by_word <span class="sc">|&gt;</span> </span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(outlet, word, value, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
@@ -4024,20 +4024,20 @@ Note
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">column_labels.background.color =</span> <span class="st">&quot;lightblue&quot;</span></span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="kntrcjrrlr" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#kntrcjrrlr table {
+<div id="rbnyrhmkol" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#rbnyrhmkol table {
 font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-#kntrcjrrlr thead, #kntrcjrrlr tbody, #kntrcjrrlr tfoot, #kntrcjrrlr tr, #kntrcjrrlr td, #kntrcjrrlr th {
+#rbnyrhmkol thead, #rbnyrhmkol tbody, #rbnyrhmkol tfoot, #rbnyrhmkol tr, #rbnyrhmkol td, #rbnyrhmkol th {
 border-style: none;
 }
-#kntrcjrrlr p {
+#rbnyrhmkol p {
 margin: 0;
 padding: 0;
 }
-#kntrcjrrlr .gt_table {
+#rbnyrhmkol .gt_table {
 display: table;
 border-collapse: collapse;
 line-height: normal;
@@ -4062,11 +4062,11 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_caption {
+#rbnyrhmkol .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#kntrcjrrlr .gt_title {
+#rbnyrhmkol .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -4077,7 +4077,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#kntrcjrrlr .gt_subtitle {
+#rbnyrhmkol .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -4088,7 +4088,7 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#kntrcjrrlr .gt_heading {
+#rbnyrhmkol .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -4099,12 +4099,12 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_bottom_border {
+#rbnyrhmkol .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_col_headings {
+#rbnyrhmkol .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -4118,7 +4118,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_col_heading {
+#rbnyrhmkol .gt_col_heading {
 color: #333333;
 background-color: #ADD8E6;
 font-size: 100%;
@@ -4137,7 +4137,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#kntrcjrrlr .gt_column_spanner_outer {
+#rbnyrhmkol .gt_column_spanner_outer {
 color: #333333;
 background-color: #ADD8E6;
 font-size: 100%;
@@ -4148,13 +4148,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#kntrcjrrlr .gt_column_spanner_outer:first-child {
+#rbnyrhmkol .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#kntrcjrrlr .gt_column_spanner_outer:last-child {
+#rbnyrhmkol .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#kntrcjrrlr .gt_column_spanner {
+#rbnyrhmkol .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -4165,10 +4165,10 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#kntrcjrrlr .gt_spanner_row {
+#rbnyrhmkol .gt_spanner_row {
 border-bottom-style: hidden;
 }
-#kntrcjrrlr .gt_group_heading {
+#rbnyrhmkol .gt_group_heading {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4193,7 +4193,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#kntrcjrrlr .gt_empty_group_heading {
+#rbnyrhmkol .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -4207,13 +4207,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#kntrcjrrlr .gt_from_md > :first-child {
+#rbnyrhmkol .gt_from_md > :first-child {
 margin-top: 0;
 }
-#kntrcjrrlr .gt_from_md > :last-child {
+#rbnyrhmkol .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#kntrcjrrlr .gt_row {
+#rbnyrhmkol .gt_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4231,7 +4231,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#kntrcjrrlr .gt_stub {
+#rbnyrhmkol .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -4243,7 +4243,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#kntrcjrrlr .gt_stub_row_group {
+#rbnyrhmkol .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -4256,13 +4256,13 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#kntrcjrrlr .gt_row_group_first td {
+#rbnyrhmkol .gt_row_group_first td {
 border-top-width: 2px;
 }
-#kntrcjrrlr .gt_row_group_first th {
+#rbnyrhmkol .gt_row_group_first th {
 border-top-width: 2px;
 }
-#kntrcjrrlr .gt_summary_row {
+#rbnyrhmkol .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -4271,14 +4271,14 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#kntrcjrrlr .gt_first_summary_row {
+#rbnyrhmkol .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_first_summary_row.thick {
+#rbnyrhmkol .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#kntrcjrrlr .gt_last_summary_row {
+#rbnyrhmkol .gt_last_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4287,7 +4287,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_grand_summary_row {
+#rbnyrhmkol .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -4296,7 +4296,7 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#kntrcjrrlr .gt_first_grand_summary_row {
+#rbnyrhmkol .gt_first_grand_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4305,7 +4305,7 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_last_grand_summary_row_top {
+#rbnyrhmkol .gt_last_grand_summary_row_top {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4314,10 +4314,10 @@ border-bottom-style: double;
 border-bottom-width: 6px;
 border-bottom-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_striped {
+#rbnyrhmkol .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#kntrcjrrlr .gt_table_body {
+#rbnyrhmkol .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -4325,7 +4325,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_footnotes {
+#rbnyrhmkol .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -4338,7 +4338,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_footnote {
+#rbnyrhmkol .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-top: 4px;
@@ -4346,7 +4346,7 @@ padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#kntrcjrrlr .gt_sourcenotes {
+#rbnyrhmkol .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -4359,64 +4359,64 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#kntrcjrrlr .gt_sourcenote {
+#rbnyrhmkol .gt_sourcenote {
 font-size: 90%;
 padding-top: 4px;
 padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#kntrcjrrlr .gt_left {
+#rbnyrhmkol .gt_left {
 text-align: left;
 }
-#kntrcjrrlr .gt_center {
+#rbnyrhmkol .gt_center {
 text-align: center;
 }
-#kntrcjrrlr .gt_right {
+#rbnyrhmkol .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#kntrcjrrlr .gt_font_normal {
+#rbnyrhmkol .gt_font_normal {
 font-weight: normal;
 }
-#kntrcjrrlr .gt_font_bold {
+#rbnyrhmkol .gt_font_bold {
 font-weight: bold;
 }
-#kntrcjrrlr .gt_font_italic {
+#rbnyrhmkol .gt_font_italic {
 font-style: italic;
 }
-#kntrcjrrlr .gt_super {
+#rbnyrhmkol .gt_super {
 font-size: 65%;
 }
-#kntrcjrrlr .gt_footnote_marks {
+#rbnyrhmkol .gt_footnote_marks {
 font-size: 75%;
 vertical-align: 0.4em;
 position: initial;
 }
-#kntrcjrrlr .gt_asterisk {
+#rbnyrhmkol .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#kntrcjrrlr .gt_indent_1 {
+#rbnyrhmkol .gt_indent_1 {
 text-indent: 5px;
 }
-#kntrcjrrlr .gt_indent_2 {
+#rbnyrhmkol .gt_indent_2 {
 text-indent: 10px;
 }
-#kntrcjrrlr .gt_indent_3 {
+#rbnyrhmkol .gt_indent_3 {
 text-indent: 15px;
 }
-#kntrcjrrlr .gt_indent_4 {
+#rbnyrhmkol .gt_indent_4 {
 text-indent: 20px;
 }
-#kntrcjrrlr .gt_indent_5 {
+#rbnyrhmkol .gt_indent_5 {
 text-indent: 25px;
 }
-#kntrcjrrlr .katex-display {
+#rbnyrhmkol .katex-display {
 display: inline-flex !important;
 margin-bottom: 0.75em !important;
 }
-#kntrcjrrlr div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#rbnyrhmkol div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
 height: 0px !important;
 }
 </style>
@@ -4552,20 +4552,20 @@ height: 0px !important;
 <span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">column_labels.background.color =</span> <span class="st">&quot;lightblue&quot;</span></span>
 <span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>  )</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="gtewuwrrxb" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#gtewuwrrxb table {
+<div id="kxjcuegyyd" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#kxjcuegyyd table {
 font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-#gtewuwrrxb thead, #gtewuwrrxb tbody, #gtewuwrrxb tfoot, #gtewuwrrxb tr, #gtewuwrrxb td, #gtewuwrrxb th {
+#kxjcuegyyd thead, #kxjcuegyyd tbody, #kxjcuegyyd tfoot, #kxjcuegyyd tr, #kxjcuegyyd td, #kxjcuegyyd th {
 border-style: none;
 }
-#gtewuwrrxb p {
+#kxjcuegyyd p {
 margin: 0;
 padding: 0;
 }
-#gtewuwrrxb .gt_table {
+#kxjcuegyyd .gt_table {
 display: table;
 border-collapse: collapse;
 line-height: normal;
@@ -4590,11 +4590,11 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_caption {
+#kxjcuegyyd .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#gtewuwrrxb .gt_title {
+#kxjcuegyyd .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -4605,7 +4605,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#gtewuwrrxb .gt_subtitle {
+#kxjcuegyyd .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -4616,7 +4616,7 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#gtewuwrrxb .gt_heading {
+#kxjcuegyyd .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -4627,12 +4627,12 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_bottom_border {
+#kxjcuegyyd .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_col_headings {
+#kxjcuegyyd .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -4646,7 +4646,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_col_heading {
+#kxjcuegyyd .gt_col_heading {
 color: #333333;
 background-color: #ADD8E6;
 font-size: 100%;
@@ -4665,7 +4665,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#gtewuwrrxb .gt_column_spanner_outer {
+#kxjcuegyyd .gt_column_spanner_outer {
 color: #333333;
 background-color: #ADD8E6;
 font-size: 100%;
@@ -4676,13 +4676,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#gtewuwrrxb .gt_column_spanner_outer:first-child {
+#kxjcuegyyd .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#gtewuwrrxb .gt_column_spanner_outer:last-child {
+#kxjcuegyyd .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#gtewuwrrxb .gt_column_spanner {
+#kxjcuegyyd .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -4693,10 +4693,10 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#gtewuwrrxb .gt_spanner_row {
+#kxjcuegyyd .gt_spanner_row {
 border-bottom-style: hidden;
 }
-#gtewuwrrxb .gt_group_heading {
+#kxjcuegyyd .gt_group_heading {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4721,7 +4721,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#gtewuwrrxb .gt_empty_group_heading {
+#kxjcuegyyd .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -4735,13 +4735,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#gtewuwrrxb .gt_from_md > :first-child {
+#kxjcuegyyd .gt_from_md > :first-child {
 margin-top: 0;
 }
-#gtewuwrrxb .gt_from_md > :last-child {
+#kxjcuegyyd .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#gtewuwrrxb .gt_row {
+#kxjcuegyyd .gt_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4759,7 +4759,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#gtewuwrrxb .gt_stub {
+#kxjcuegyyd .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -4771,7 +4771,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#gtewuwrrxb .gt_stub_row_group {
+#kxjcuegyyd .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -4784,13 +4784,13 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#gtewuwrrxb .gt_row_group_first td {
+#kxjcuegyyd .gt_row_group_first td {
 border-top-width: 2px;
 }
-#gtewuwrrxb .gt_row_group_first th {
+#kxjcuegyyd .gt_row_group_first th {
 border-top-width: 2px;
 }
-#gtewuwrrxb .gt_summary_row {
+#kxjcuegyyd .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -4799,14 +4799,14 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#gtewuwrrxb .gt_first_summary_row {
+#kxjcuegyyd .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_first_summary_row.thick {
+#kxjcuegyyd .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#gtewuwrrxb .gt_last_summary_row {
+#kxjcuegyyd .gt_last_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4815,7 +4815,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_grand_summary_row {
+#kxjcuegyyd .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -4824,7 +4824,7 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#gtewuwrrxb .gt_first_grand_summary_row {
+#kxjcuegyyd .gt_first_grand_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4833,7 +4833,7 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_last_grand_summary_row_top {
+#kxjcuegyyd .gt_last_grand_summary_row_top {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -4842,10 +4842,10 @@ border-bottom-style: double;
 border-bottom-width: 6px;
 border-bottom-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_striped {
+#kxjcuegyyd .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#gtewuwrrxb .gt_table_body {
+#kxjcuegyyd .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -4853,7 +4853,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_footnotes {
+#kxjcuegyyd .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -4866,7 +4866,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_footnote {
+#kxjcuegyyd .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-top: 4px;
@@ -4874,7 +4874,7 @@ padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#gtewuwrrxb .gt_sourcenotes {
+#kxjcuegyyd .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -4887,64 +4887,64 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#gtewuwrrxb .gt_sourcenote {
+#kxjcuegyyd .gt_sourcenote {
 font-size: 90%;
 padding-top: 4px;
 padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#gtewuwrrxb .gt_left {
+#kxjcuegyyd .gt_left {
 text-align: left;
 }
-#gtewuwrrxb .gt_center {
+#kxjcuegyyd .gt_center {
 text-align: center;
 }
-#gtewuwrrxb .gt_right {
+#kxjcuegyyd .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#gtewuwrrxb .gt_font_normal {
+#kxjcuegyyd .gt_font_normal {
 font-weight: normal;
 }
-#gtewuwrrxb .gt_font_bold {
+#kxjcuegyyd .gt_font_bold {
 font-weight: bold;
 }
-#gtewuwrrxb .gt_font_italic {
+#kxjcuegyyd .gt_font_italic {
 font-style: italic;
 }
-#gtewuwrrxb .gt_super {
+#kxjcuegyyd .gt_super {
 font-size: 65%;
 }
-#gtewuwrrxb .gt_footnote_marks {
+#kxjcuegyyd .gt_footnote_marks {
 font-size: 75%;
 vertical-align: 0.4em;
 position: initial;
 }
-#gtewuwrrxb .gt_asterisk {
+#kxjcuegyyd .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#gtewuwrrxb .gt_indent_1 {
+#kxjcuegyyd .gt_indent_1 {
 text-indent: 5px;
 }
-#gtewuwrrxb .gt_indent_2 {
+#kxjcuegyyd .gt_indent_2 {
 text-indent: 10px;
 }
-#gtewuwrrxb .gt_indent_3 {
+#kxjcuegyyd .gt_indent_3 {
 text-indent: 15px;
 }
-#gtewuwrrxb .gt_indent_4 {
+#kxjcuegyyd .gt_indent_4 {
 text-indent: 20px;
 }
-#gtewuwrrxb .gt_indent_5 {
+#kxjcuegyyd .gt_indent_5 {
 text-indent: 25px;
 }
-#gtewuwrrxb .katex-display {
+#kxjcuegyyd .katex-display {
 display: inline-flex !important;
 margin-bottom: 0.75em !important;
 }
-#gtewuwrrxb div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#kxjcuegyyd div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
 height: 0px !important;
 }
 </style>
@@ -5112,20 +5112,20 @@ Note
 <span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fmt_number</span>(<span class="at">columns =</span> <span class="fu">c</span>(score_per_100, bing_per_100), <span class="at">decimals =</span> <span class="dv">2</span>) <span class="sc">|&gt;</span></span>
 <span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tab_options</span>(<span class="at">column_labels.background.color =</span> <span class="st">&quot;lightblue&quot;</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
-<div id="pbtjjhszmi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#pbtjjhszmi table {
+<div id="fpoqxboumi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#fpoqxboumi table {
 font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-#pbtjjhszmi thead, #pbtjjhszmi tbody, #pbtjjhszmi tfoot, #pbtjjhszmi tr, #pbtjjhszmi td, #pbtjjhszmi th {
+#fpoqxboumi thead, #fpoqxboumi tbody, #fpoqxboumi tfoot, #fpoqxboumi tr, #fpoqxboumi td, #fpoqxboumi th {
 border-style: none;
 }
-#pbtjjhszmi p {
+#fpoqxboumi p {
 margin: 0;
 padding: 0;
 }
-#pbtjjhszmi .gt_table {
+#fpoqxboumi .gt_table {
 display: table;
 border-collapse: collapse;
 line-height: normal;
@@ -5150,11 +5150,11 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_caption {
+#fpoqxboumi .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#pbtjjhszmi .gt_title {
+#fpoqxboumi .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -5165,7 +5165,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#pbtjjhszmi .gt_subtitle {
+#fpoqxboumi .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -5176,7 +5176,7 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#pbtjjhszmi .gt_heading {
+#fpoqxboumi .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -5187,12 +5187,12 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_bottom_border {
+#fpoqxboumi .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_col_headings {
+#fpoqxboumi .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -5206,7 +5206,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_col_heading {
+#fpoqxboumi .gt_col_heading {
 color: #333333;
 background-color: #ADD8E6;
 font-size: 100%;
@@ -5225,7 +5225,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#pbtjjhszmi .gt_column_spanner_outer {
+#fpoqxboumi .gt_column_spanner_outer {
 color: #333333;
 background-color: #ADD8E6;
 font-size: 100%;
@@ -5236,13 +5236,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#pbtjjhszmi .gt_column_spanner_outer:first-child {
+#fpoqxboumi .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#pbtjjhszmi .gt_column_spanner_outer:last-child {
+#fpoqxboumi .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#pbtjjhszmi .gt_column_spanner {
+#fpoqxboumi .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -5253,10 +5253,10 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#pbtjjhszmi .gt_spanner_row {
+#fpoqxboumi .gt_spanner_row {
 border-bottom-style: hidden;
 }
-#pbtjjhszmi .gt_group_heading {
+#fpoqxboumi .gt_group_heading {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -5281,7 +5281,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#pbtjjhszmi .gt_empty_group_heading {
+#fpoqxboumi .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -5295,13 +5295,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#pbtjjhszmi .gt_from_md > :first-child {
+#fpoqxboumi .gt_from_md > :first-child {
 margin-top: 0;
 }
-#pbtjjhszmi .gt_from_md > :last-child {
+#fpoqxboumi .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#pbtjjhszmi .gt_row {
+#fpoqxboumi .gt_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -5319,7 +5319,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#pbtjjhszmi .gt_stub {
+#fpoqxboumi .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -5331,7 +5331,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#pbtjjhszmi .gt_stub_row_group {
+#fpoqxboumi .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -5344,13 +5344,13 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#pbtjjhszmi .gt_row_group_first td {
+#fpoqxboumi .gt_row_group_first td {
 border-top-width: 2px;
 }
-#pbtjjhszmi .gt_row_group_first th {
+#fpoqxboumi .gt_row_group_first th {
 border-top-width: 2px;
 }
-#pbtjjhszmi .gt_summary_row {
+#fpoqxboumi .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -5359,14 +5359,14 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#pbtjjhszmi .gt_first_summary_row {
+#fpoqxboumi .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_first_summary_row.thick {
+#fpoqxboumi .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#pbtjjhszmi .gt_last_summary_row {
+#fpoqxboumi .gt_last_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -5375,7 +5375,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_grand_summary_row {
+#fpoqxboumi .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -5384,7 +5384,7 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#pbtjjhszmi .gt_first_grand_summary_row {
+#fpoqxboumi .gt_first_grand_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -5393,7 +5393,7 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_last_grand_summary_row_top {
+#fpoqxboumi .gt_last_grand_summary_row_top {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -5402,10 +5402,10 @@ border-bottom-style: double;
 border-bottom-width: 6px;
 border-bottom-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_striped {
+#fpoqxboumi .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#pbtjjhszmi .gt_table_body {
+#fpoqxboumi .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -5413,7 +5413,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_footnotes {
+#fpoqxboumi .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -5426,7 +5426,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_footnote {
+#fpoqxboumi .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-top: 4px;
@@ -5434,7 +5434,7 @@ padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#pbtjjhszmi .gt_sourcenotes {
+#fpoqxboumi .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -5447,64 +5447,64 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#pbtjjhszmi .gt_sourcenote {
+#fpoqxboumi .gt_sourcenote {
 font-size: 90%;
 padding-top: 4px;
 padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#pbtjjhszmi .gt_left {
+#fpoqxboumi .gt_left {
 text-align: left;
 }
-#pbtjjhszmi .gt_center {
+#fpoqxboumi .gt_center {
 text-align: center;
 }
-#pbtjjhszmi .gt_right {
+#fpoqxboumi .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#pbtjjhszmi .gt_font_normal {
+#fpoqxboumi .gt_font_normal {
 font-weight: normal;
 }
-#pbtjjhszmi .gt_font_bold {
+#fpoqxboumi .gt_font_bold {
 font-weight: bold;
 }
-#pbtjjhszmi .gt_font_italic {
+#fpoqxboumi .gt_font_italic {
 font-style: italic;
 }
-#pbtjjhszmi .gt_super {
+#fpoqxboumi .gt_super {
 font-size: 65%;
 }
-#pbtjjhszmi .gt_footnote_marks {
+#fpoqxboumi .gt_footnote_marks {
 font-size: 75%;
 vertical-align: 0.4em;
 position: initial;
 }
-#pbtjjhszmi .gt_asterisk {
+#fpoqxboumi .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#pbtjjhszmi .gt_indent_1 {
+#fpoqxboumi .gt_indent_1 {
 text-indent: 5px;
 }
-#pbtjjhszmi .gt_indent_2 {
+#fpoqxboumi .gt_indent_2 {
 text-indent: 10px;
 }
-#pbtjjhszmi .gt_indent_3 {
+#fpoqxboumi .gt_indent_3 {
 text-indent: 15px;
 }
-#pbtjjhszmi .gt_indent_4 {
+#fpoqxboumi .gt_indent_4 {
 text-indent: 20px;
 }
-#pbtjjhszmi .gt_indent_5 {
+#fpoqxboumi .gt_indent_5 {
 text-indent: 25px;
 }
-#pbtjjhszmi .katex-display {
+#fpoqxboumi .katex-display {
 display: inline-flex !important;
 margin-bottom: 0.75em !important;
 }
-#pbtjjhszmi div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#fpoqxboumi div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
 height: 0px !important;
 }
 </style>
@@ -6678,7 +6678,7 @@ Note
 <span id="cb24-366"><a href="#cb24-366" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-367"><a href="#cb24-367" aria-hidden="true" tabindex="-1"></a>Before conducting analysis, I want to set my threshold for neutrality: A net AFINN score between -1 and +1 per 100 words of article text.</span>
 <span id="cb24-368"><a href="#cb24-368" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-369"><a href="#cb24-369" aria-hidden="true" tabindex="-1"></a>I score per 100 words of the whole article, not per scored word, so that neutral words (which AFINN does not score) count as 0 and pull the score toward neutral. Due to the higher count of negative words in AFINN, I will also compare the news outlets to each other (centered on the average outlet) instead of only to a 0 baseline.</span>
+<span id="cb24-369"><a href="#cb24-369" aria-hidden="true" tabindex="-1"></a>I used score per 100 words of the whole article, not per scored word, so that neutral words count as 0 and pull the score toward neutral. Due to the higher count of negative words in AFINN, I will also compare the news outlets to each other (centered on the average outlet) instead of only to a 0 baseline.</span>
 <span id="cb24-370"><a href="#cb24-370" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb24-371"><a href="#cb24-371" aria-hidden="true" tabindex="-1"></a>I will start my loading my lexicon, and then cleaning the articles by removing contaminated words like &quot;won&quot;, &quot;winning&quot;, and &quot;loss&quot;.</span>
 <span id="cb24-372"><a href="#cb24-372" aria-hidden="true" tabindex="-1"></a></span>
@@ -6689,10 +6689,10 @@ Note
 <span id="cb24-377"><a href="#cb24-377" aria-hidden="true" tabindex="-1"></a><span class="co"># Starting with AFINN</span></span>
 <span id="cb24-378"><a href="#cb24-378" aria-hidden="true" tabindex="-1"></a><span class="fu">get_sentiments</span>(<span class="st">&quot;afinn&quot;</span>) <span class="sc">|&gt;</span> <span class="fu">count</span>(<span class="at">direction =</span> <span class="fu">sign</span>(value))</span>
 <span id="cb24-379"><a href="#cb24-379" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-380"><a href="#cb24-380" aria-hidden="true" tabindex="-1"></a><span class="co">#Common elections words in AFINN</span></span>
-<span id="cb24-381"><a href="#cb24-381" aria-hidden="true" tabindex="-1"></a>election_words <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;win&quot;</span>, <span class="st">&quot;won&quot;</span>, <span class="st">&quot;lost&quot;</span>, <span class="st">&quot;loss&quot;</span>, <span class="st">&quot;stunning&quot;</span>, <span class="st">&quot;war&quot;</span>,<span class="st">&quot;won&quot;</span>, <span class="st">&quot;lost&quot;</span>, <span class="st">&quot;win&quot;</span>, <span class="st">&quot;winning&quot;</span>, <span class="st">&quot;wins&quot;</span>, <span class="st">&quot;winner&quot;</span>, <span class="st">&quot;defeated&quot;</span>, <span class="st">&quot;losing&quot;</span>, <span class="st">&quot;loss&quot;</span>, <span class="st">&quot;gains&quot;</span>, <span class="st">&quot;gain&quot;</span>, <span class="st">&quot;secured&quot;</span>, <span class="st">&quot;outstanding&quot;</span>,<span class="st">&quot;approval&quot;</span>, <span class="st">&quot;poised&quot;</span>,<span class="st">&quot;like&quot;</span>)</span>
+<span id="cb24-380"><a href="#cb24-380" aria-hidden="true" tabindex="-1"></a><span class="co"># Common elections words in AFINN</span></span>
+<span id="cb24-381"><a href="#cb24-381" aria-hidden="true" tabindex="-1"></a>election_words <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;win&quot;</span>, <span class="st">&quot;won&quot;</span>, <span class="st">&quot;lost&quot;</span>, <span class="st">&quot;loss&quot;</span>, <span class="st">&quot;stunning&quot;</span>, <span class="st">&quot;war&quot;</span>,<span class="st">&quot;won&quot;</span>, <span class="st">&quot;lost&quot;</span>, <span class="st">&quot;win&quot;</span>,<span class="st">&quot;winning&quot;</span>, <span class="st">&quot;wins&quot;</span>, <span class="st">&quot;winner&quot;</span>, <span class="st">&quot;defeated&quot;</span>, <span class="st">&quot;losing&quot;</span>, <span class="st">&quot;loss&quot;</span>, <span class="st">&quot;gains&quot;</span>, <span class="st">&quot;gain&quot;</span>, <span class="st">&quot;secured&quot;</span>, <span class="st">&quot;outstanding&quot;</span>,<span class="st">&quot;approval&quot;</span>, <span class="st">&quot;poised&quot;</span>,<span class="st">&quot;like&quot;</span>)</span>
 <span id="cb24-382"><a href="#cb24-382" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-383"><a href="#cb24-383" aria-hidden="true" tabindex="-1"></a><span class="co">#Remove nuetral words from Lexicon</span></span>
+<span id="cb24-383"><a href="#cb24-383" aria-hidden="true" tabindex="-1"></a><span class="co"># Remove neutral words from Lexicon</span></span>
 <span id="cb24-384"><a href="#cb24-384" aria-hidden="true" tabindex="-1"></a>afinn_filtered <span class="ot">&lt;-</span> <span class="fu">get_sentiments</span>(<span class="st">&quot;afinn&quot;</span>) <span class="sc">|&gt;</span></span>
 <span id="cb24-385"><a href="#cb24-385" aria-hidden="true" tabindex="-1"></a>  <span class="fu">anti_join</span>(<span class="fu">tibble</span>(<span class="at">word =</span> election_words), <span class="at">by =</span> <span class="st">&quot;word&quot;</span>)</span>
 <span id="cb24-386"><a href="#cb24-386" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
@@ -6717,7 +6717,7 @@ Note
 <span id="cb24-405"><a href="#cb24-405" aria-hidden="true" tabindex="-1"></a>sentiment_by_word <span class="ot">&lt;-</span> tidy_articles <span class="sc">|&gt;</span></span>
 <span id="cb24-406"><a href="#cb24-406" aria-hidden="true" tabindex="-1"></a>  <span class="fu">inner_join</span>(afinn_filtered, <span class="at">by =</span> <span class="st">&quot;word&quot;</span>)</span>
 <span id="cb24-407"><a href="#cb24-407" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-408"><a href="#cb24-408" aria-hidden="true" tabindex="-1"></a><span class="co">#Creates cunts for future analysis</span></span>
+<span id="cb24-408"><a href="#cb24-408" aria-hidden="true" tabindex="-1"></a><span class="co">#Creates counts for future analysis</span></span>
 <span id="cb24-409"><a href="#cb24-409" aria-hidden="true" tabindex="-1"></a>sentiment_count <span class="ot">&lt;-</span> sentiment_by_word <span class="sc">|&gt;</span> </span>
 <span id="cb24-410"><a href="#cb24-410" aria-hidden="true" tabindex="-1"></a>  <span class="fu">count</span>(outlet, word, value, <span class="at">sort =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb24-411"><a href="#cb24-411" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>

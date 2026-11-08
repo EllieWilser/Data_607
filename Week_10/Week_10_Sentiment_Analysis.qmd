@@ -366,7 +366,7 @@ The lexicon I decided to use first for this assignment is **AFINN** (Nielsen, 20
 
 Before conducting analysis, I want to set my threshold for neutrality: A net AFINN score between -1 and +1 per 100 words of article text.
 
-I score per 100 words of the whole article, not per scored word, so that neutral words (which AFINN does not score) count as 0 and pull the score toward neutral. Due to the higher count of negative words in AFINN, I will also compare the news outlets to each other (centered on the average outlet) instead of only to a 0 baseline.
+I used score per 100 words of the whole article, not per scored word, so that neutral words count as 0 and pull the score toward neutral. Due to the higher count of negative words in AFINN, I will also compare the news outlets to each other (centered on the average outlet) instead of only to a 0 baseline.
 
 I will start my loading my lexicon, and then cleaning the articles by removing contaminated words like "won", "winning", and "loss".
 
@@ -377,10 +377,10 @@ I will start my loading my lexicon, and then cleaning the articles by removing c
 # Starting with AFINN
 get_sentiments("afinn") |> count(direction = sign(value))
 
-#Common elections words in AFINN
-election_words <- c("win", "won", "lost", "loss", "stunning", "war","won", "lost", "win", "winning", "wins", "winner", "defeated", "losing", "loss", "gains", "gain", "secured", "outstanding","approval", "poised","like")
+# Common elections words in AFINN
+election_words <- c("win", "won", "lost", "loss", "stunning", "war","won", "lost", "win","winning", "wins", "winner", "defeated", "losing", "loss", "gains", "gain", "secured", "outstanding","approval", "poised","like")
 
-#Remove nuetral words from Lexicon
+# Remove neutral words from Lexicon
 afinn_filtered <- get_sentiments("afinn") |>
   anti_join(tibble(word = election_words), by = "word")
 ```
@@ -405,7 +405,7 @@ tidy_articles <- midterm_articles |>
 sentiment_by_word <- tidy_articles |>
   inner_join(afinn_filtered, by = "word")
 
-#Creates cunts for future analysis
+#Creates counts for future analysis
 sentiment_count <- sentiment_by_word |> 
   count(outlet, word, value, sort = TRUE)
 ```

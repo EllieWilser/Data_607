@@ -325,7 +325,7 @@ laureates_age |>
 
 ## Conclusion
 
-Overall I enjoyed this assignment, and it gave me great experience working different with nested JSON files. To develop the code to unnest the JSON, I had to use the API documentation on the Nobel Peace Prize website. This was my first time working with an API documentation, and I'm excited to apply this knowledge in the future.
+Overall I enjoyed this assignment, and it gave me great experience working with different nested JSON files. To develop the code to unnest the JSON, I had to use the API documentation on the Nobel Peace Prize website. This was my first time working with an API documentation, and I'm excited to apply this knowledge in the future.
 
 The following sections include the answers to my business question from the introduction.
 
