@@ -1,5 +1,5 @@
 ---
-title: "Data 607: Noble Prize Winners JSON"
+title: "Data 607: Nobel Prize Winners JSON"
 author: "Ellie Wilser"
 editor: visual
 format:
@@ -34,7 +34,7 @@ Finally, I will be sure to answer the questions in a way tabular and with visual
 
 ## AI Usage
 
-For this assignment, I want to focus on reading the Noble Prize data from the API. I asked Claude to tell me the steps, then asking for the model to check my work. This week I focused my time on the Sentiment analysis, so the visualizations in this assignment where made by steering Claude. All the interpretation was done independently.
+For this assignment, I want to focus on reading the Nobel Prize data from the API. I asked Claude to tell me the steps, then asking for the model to check my work. This week I focused my time on the Sentiment analysis, so the visualizations in this assignment where made by steering Claude. All the interpretation was done independently.
 
 ```{r libraries}
 library(dplyr)
