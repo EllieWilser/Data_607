@@ -1,0 +1,118 @@
+---
+title: "Data 607: Week 11 Discussion"
+subtitle: "Analyzing Depop's Recommender System"
+author: "Ellie Wilser"
+date: today
+format:
+  html:
+    theme:
+      light: cosmo
+      dark: darkly
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    number-sections: true
+    smooth-scroll: true
+    anchor-sections: true
+    fig-align: center
+    embed-resources: true
+execute:
+  warning: false
+---
+
+## Introduction
+
+Depop is one of the largest online marketplaces for secondhand
+clothing. Unlike a traditional retailer, where thousands of shoppers can buy
+the same product, almost every item on a resale app is one of a kind. Once it
+sells, it is gone. This makes recommendation unusually hard. A listing often
+sells before it has collected enough likes or views for collaborative filtering
+to learn from it, and the right item for a shopper depends on details like
+size, condition and personal style.
+
+Recommendations also matter for sustainability. Every good match between a
+buyer and a used item is a piece of clothing that gets worn again instead of
+thrown away, and possibly one less new item produced. Better recommendations
+mean more items find a second owner.
+
+
+## Scenario Design
+
+Scenario design asks three questions: Who are the target users? What are their
+key goals? How can the site help them accomplish those goals?
+
+### The Company
+
+**Who are the target users?**
+
+Depop's target audience is mostly Gen Z shoppers who are interested in vintage and secondhand clothes. Depop advertises both to people looking to sell and to people looking to buy vintage and secondhand clothing.
+
+**Goals**
+
+Depop's main goal is to turn browsing into purchases. In July 2024, Depop removed its 10% selling fee for US sellers and introduced a marketplace fee that buyers pay on every purchase. Sellers still pay a payment processing fee on each sale (Depop, 2024). Because Depop earns its fees when items sell, the more sales made through the platform, the more profit Depop makes.
+
+Depop also sells advertising through boosted listings. Sellers pay an 8% fee only when a buyer who interacted with the boosted item buys it within 28 days (Sacra).
+
+Depop relies on both buyers and sellers, so it is very important that both keep coming back to the app. Losing either side weakens the marketplace.
+
+**Recommendation System**
+
+Depop's personalized feed looks at your last 300 views, picks about 600 likely matches from millions of listings, re-ranks them based on your actions and refreshes multiple times a day (Depop product release blog, January 2025).
+
+This benefits Depop because the more sales made on the platform, the more profit Depop makes from fees.
+
+
+### Buyers and Sellers
+
+**Who are they?**
+
+Shoppers on Depop tend to be younger people looking for specific, unique pieces. Others browse for fun, almost like scrolling social media.
+
+Sellers cover a wider range. They include people clearing out their closets and small resellers who source thrift clothes.
+
+**Goals**
+
+The goals of buyers on Depop are to get good prices and find pieces that match their style and size. With secondhand clothing, size is very important because almost every piece on Depop is unique, so there are no other sizes to choose from for a specific item.
+
+Sellers on the app want their listings seen by the right buyers, and they also want to build a following and have repeat buyers. Sellers often want quick cash too, so it is important that their listings sell fast.
+
+**Recommendation System**
+
+Depop's recommendation system brings sellers and buyers together. It matches buyers to listings that fit their style. This helps both sellers and buyers meet their goals.
+
+**Conflict**
+
+Depop earns more when boosted listings rank higher, but buyers care more about relevant items, and a lot of ads in the feed can feel like spam and a cash grab.
+
+Depop tends to rank by engagement, which hurts sellers who are just starting out on the app. This means that Depop will tend to recommend popular sellers to buyers.
+
+### Browsing Experiment
+
+I started browsing Depop in an incognito window, so none of my previous information was saved. I searched for plus-size clothing to see whether the personalized section would change to match my searches. I also focused on summer clothes.
+
+I first searched for plus-size denim shorts, and the entire personalized section turned into denim shorts.
+
+Next, I searched for plus-size summer dresses and clicked on a few different listings. I repeated this for a few other types of items. Afterward, I checked the women's tops section, and there weren't any recommendations based on my search history.
+
+I also checked my personal Depop account, and the women's section does not have personalized recommendations based on my size or style. Only the "Personalized" section seems to use a recommendation system.
+
+
+## Recommendations for Improvement
+
+I was disappointed to see that the women's sections for specific types of items were not personalized. The most difficult part of thrifting is finding clothing in your style and size. Depop could learn a user's size from their search history and show them only clothes in that range. This would help sellers make more sales and help buyers find clothes that fit without heavy searching.
+
+## References
+
+- Depop. (2025, January 31). *Depop product release: Revolutionizing resale
+  through AI.* Depop Blog.
+  <https://www.depop.com/blog/depop-product-release-jan-2025/>
+
+- Depop. (2024, July). *Depop removes selling fees in the United States,
+  evolves fee structure.* Depop Newsroom.
+  <https://news.depop.com/depop-removes-selling-fees-in-the-united-states-evolves-fee-structure/>
+
+- Depop. (n.d.). *Depop search: How search works on Depop.* Depop Blog.
+  <https://blog.depop.com/articles/depop-search-how-search-works-on-depop>
+
+- Sacra. (n.d.). *Depop valuation, funding & news.*
+  <https://sacra.com/research/depop>
