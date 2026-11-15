@@ -1,0 +1,57 @@
+---
+title: "Heating Oil Refill Calculator"
+author: "Ellie Wilser"
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-location: left
+    toc-depth: 3
+    code-fold: true
+    code-summary: "Show code"
+    code-tools: true
+    df-print: paged
+    smooth-scroll: true
+    embed-resources: true
+execute:
+  message: false
+  warning: false
+editor: visual
+---
+
+### Approach
+
+#### Back Story
+
+Growing up in a rural community, I saw the impacts of steep heating oil bills on households in upstate New York. Heating oil is commonly used in rural communities where space is available for a 275 tank. Often the cost to refill the tank can be over \$1,000 which can be unexpected for many.
+
+When I first moved into a home with heating oil by myself last year, I discovered how difficult it is to plan ahead and know when to refill your tank. The pricing of heating oil changes drastically throughout the winter, peaking in the coldest months. My first year in this apartment, I payed almost \$2,000 in total for the heating during the winter, while keeping my heat set to 63 degrees.
+
+I believe that I can create a tool to save families money on their residential heating oil by buying it at the correct time.
+
+#### Framing: a refill-timing tool
+
+My final project began as a fuel hedging guide, but a typical home heating oil tank holds about 275 gallons, which is far too little to store a whole season's fuel at a low price. A household can't hedge the way a business can. So my final project is framed as a refill-timing tool: given today's prices, the market outlook, and how much oil is left in the tank, should the household buy now or wait?
+
+The focus is heating oil. Natural gas is left out of the buy/wait analysis because it is delivered continuously by pipe and can't be stored at home, so there is no refill decision to time. It may be used only as a cost baseline for comparison.
+
+#### Step 1: How long until the tank needs a refill?
+
+Before deciding whether to wait, the tool needs to know how long the household can wait. This is estimated with the K-factor method that oil dealers use for automatic delivery:
+
+- The **K-factor** is the number of heating degree days (HDD) a home goes through per gallon of oil. It depends on the house, and can be calculated with information from the home owner.
+- Daily HDD come from NOAA (observed values and 1991–2020 normals), or the NWS 7-day forecast in the live app.
+- Starting from the current tank level, daily usage (HDD divided by K-factor) is subtracted until the tank reaches 1/4 full, the usual point where a household should reorder. The number of days until that point is the household's waiting window.
+
+#### Step 2: Buy/wait classifier
+
+The next step is creating a buy/wait classifier that predicts whether the retail heating oil price will be higher or lower by the time the household would otherwise need to buy.
+
+The predictors will include wholesale oil prices, weather data, and price data from the previous year.
+
+#### Step 3: The classifier vs. "fill at 1/4 tank"
+
+The model will be tested against a simple baseline on historical EIA weekly residential prices:
+
+- **Baseline:** the household refills whenever the tank reaches 1/4 full, at whatever the price is that week.
+- **Model strategy:** within the waiting window from Step 1, the household follows the classifier's buy/wait call each week, and always refills before the tank runs below 1/4.
