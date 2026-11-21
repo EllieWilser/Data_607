@@ -55,3 +55,245 @@ The model will be tested against a simple baseline on historical EIA weekly resi
 
 - **Baseline:** the household refills whenever the tank reaches 1/4 full, at whatever the price is that week.
 - **Model strategy:** within the waiting window from Step 1, the household follows the classifier's buy/wait call each week, and always refills before the tank runs below 1/4.
+
+### Data
+
+#### Weather Data
+
+These chunks load the weather and household data for the K-factor calculation. None of these sources need an API key. NOAA's NCEI services are open, and the NWS API only asks for a User-Agent header (set `NWS_USER_AGENT` in `~/.Renviron`).
+
+```{r}
+#| label: tank-setup
+#| message: false
+
+library(tidyverse)
+library(httr2)
+library(jsonlite)
+
+# Folder for cached downloads, so re-rendering doesn't hit the APIs every time
+dir.create("data", showWarnings = FALSE)
+
+# ---- Location ---------------------------------------------------------------
+# Default: Albany International Airport (upstate NY). Change to the customer's area.
+# Find GHCN station IDs at https://www.ncei.noaa.gov/cdo-web/datatools/findstation
+station_id <- "USW00014735"   # GHCN-Daily ID (Albany Intl Airport, NY)
+site_lat   <- 42.7473          # used for the NWS forecast
+site_lon   <- -73.7995
+
+# HDD base temperature (°F); 65 is the US standard
+hdd_base <- 65
+```
+
+##### Historical daily temperatures → observed HDD
+
+```{r}
+#| label: load-historical-hdd
+
+# NCEI Access Data Service: daily-summaries (GHCN-Daily). No key needed.
+# Docs: https://www.ncei.noaa.gov/support/access-data-service-api-user-documentation
+load_ncei_daily <- function(station, start_date, end_date, cache = TRUE) {
+  cache_file <- file.path("data", glue::glue("ncei_daily_{station}_{start_date}_{end_date}.csv"))
+  if (cache && file.exists(cache_file)) return(read_csv(cache_file, show_col_types = FALSE))
+
+  resp <- request("https://www.ncei.noaa.gov/access/services/data/v1") |>
+    req_url_query(
+      dataset    = "daily-summaries",
+      stations   = station,
+      dataTypes  = "TMAX,TMIN,TAVG",
+      startDate  = start_date,
+      endDate    = end_date,
+      units      = "standard",   # °F
+      format     = "csv"
+    ) |>
+    req_retry(max_tries = 3) |>
+    req_perform()
+
+  out <- resp |>
+    resp_body_string() |>
+    read_csv(show_col_types = FALSE) |>
+    rename_with(tolower) |>
+    mutate(date = as.Date(date))
+
+  if (cache) write_csv(out, cache_file)
+  out
+}
+
+# Pull enough history to cover the EIA backtest window (heating seasons).
+# Large ranges can time out; if so, loop over years with map_dfr().
+hist_temps <- load_ncei_daily(station_id, "2015-01-01", as.character(Sys.Date() - 1))
+
+# Daily HDD from the mean of max/min (the NOAA convention).
+# TAVG is often missing at older stations, so it isn't used here.
+hist_hdd <- hist_temps |>
+  transmute(
+    date,
+    tmax, tmin,
+    tmean = (tmax + tmin) / 2,
+    hdd   = pmax(hdd_base - tmean, 0)
+  )
+
+glimpse(hist_hdd)
+```
+
+##### 1991-2020 daily HDD normals
+
+```{r}
+#| label: load-hdd-normals
+
+# NCEI publishes one CSV per station with all daily normals. No key needed.
+# DLY-HTDD-NORMAL = normal heating degree days (base 65°F) for that calendar day.
+load_hdd_normals <- function(station, cache = TRUE) {
+  cache_file <- file.path("data", glue::glue("normals_{station}.csv"))
+  url <- glue::glue("https://www.ncei.noaa.gov/data/normals-daily/1991-2020/access/{station}.csv")
+
+  if (cache && file.exists(cache_file)) {
+    raw <- read_csv(cache_file, show_col_types = FALSE)
+  } else {
+    raw <- read_csv(url, show_col_types = FALSE)
+    if (cache) write_csv(raw, cache_file)
+  }
+
+  raw |>
+    transmute(
+      month_day  = DATE,                  # "MM-DD" (includes 02-29)
+      normal_hdd = `DLY-HTDD-NORMAL`
+    )
+}
+
+hdd_normals <- load_hdd_normals(station_id)
+
+glimpse(hdd_normals)
+```
+
+##### NWS 7-day forecast (live app only)
+
+```{r}
+#| label: load-nws-forecast
+
+# api.weather.gov needs a User-Agent identifying the app. Put your own in
+# ~/.Renviron as NWS_USER_AGENT="(your app name, your contact)"; the
+# fallback below is generic.
+nws_user_agent <- Sys.getenv("NWS_USER_AGENT", "(Data607 refill calculator)")
+
+load_nws_forecast <- function(lat, lon) {
+  nws_req <- function(url) {
+    request(url) |>
+      req_user_agent(nws_user_agent) |>
+      req_headers(Accept = "application/geo+json") |>
+      req_retry(max_tries = 3) |>
+      req_perform() |>
+      resp_body_json(simplifyVector = TRUE)
+  }
+
+  # Step 1: lat/lon -> the gridpoint forecast URL for that location
+  point <- nws_req(glue::glue("https://api.weather.gov/points/{round(lat, 4)},{round(lon, 4)}"))
+
+  # Step 2: the 12-hour forecast periods (day/night) for ~7 days
+  fc <- nws_req(point$properties$forecast)
+
+  as_tibble(fc$properties$periods) |>
+    transmute(
+      start      = ymd_hms(startTime),
+      date       = as.Date(substr(startTime, 1, 10)),  # local date from the timestamp
+      is_daytime = isDaytime,
+      temp_f     = temperature,
+      short_forecast = shortForecast
+    )
+}
+
+nws_periods <- load_nws_forecast(site_lat, site_lon)
+
+# Collapse day/night periods into a daily high/low.
+# Day 1 can be missing its high if this runs in the evening.
+nws_daily <- nws_periods |>
+  group_by(date) |>
+  summarise(
+    tmax = max(temp_f[is_daytime],  na.rm = TRUE),
+    tmin = min(temp_f[!is_daytime], na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(across(c(tmax, tmin), \(x) if_else(is.infinite(x), NA_real_, x)))
+
+nws_daily
+```
+
+##### Tank and household inputs (K-factor)
+
+### Days Until 1/4 Tank
+
+```{r Tank Inputs}
+
+tank_inputs <- tibble(
+  tank_size_gal   = 275,
+  gallons_on_hand = 180,
+  occupants       = 3,
+  sq_ft           = 1800,
+  thermostat_f    = 68
+)
+
+default_k_factor <- 5.5
+hot_water_gal_per_person_day <- 0.25
+```
+
+```{r}
+hot_water_gal_day <- hot_water_gal_per_person_day * tank_inputs$occupants
+
+forecast_hdd <- nws_daily |>
+  filter(!is.na(tmax), !is.na(tmin)) |>
+  transmute(
+    date,
+    hdd_forecast = pmax(0, hdd_base - (tmin + tmax) / 2)
+  )
+
+
+start_date <- Sys.Date() + 1
+
+hdd_path <- tibble(date = seq(start_date, by = "day", length.out = 180)) |>
+  mutate(month_day = format(date, "%m-%d")) |>
+  left_join(hdd_normals, by = "month_day") |>
+  left_join(forecast_hdd, by = "date") |>
+  mutate(
+    hdd    = coalesce(hdd_forecast, normal_hdd),
+    source = if_else(is.na(hdd_forecast), "normal", "forecast"),
+    gallons_oil_used = hdd / default_k_factor + hot_water_gal_day,
+    gallons_used_sum = cumsum(gallons_oil_used),
+    tank_amount = tank_inputs$gallons_on_hand - gallons_used_sum
+  )
+
+# Check: should be 0, and ~7 forecast rows
+sum(is.na(hdd_path$hdd))
+count(hdd_path, source)
+```
+```{r Refill Date}
+refill_row <- hdd_path |>
+  filter( tank_amount < tank_inputs$tank_size_gal / 4) |>
+  slice(1)
+```
+```{r Tank Amount Graph}
+quarter_tank <- tank_inputs$tank_size_gal / 4
+reorder <- hdd_path |> filter(tank_amount <= quarter_tank) |> slice(1)
+forecast_end <- max(hdd_path$date[hdd_path$source == "forecast"])
+
+hdd_path |>
+  filter(date <= reorder$date + 14) |>   # show a little past the crossing
+  ggplot(aes(x = date, y = tank_amount)) +
+  annotate("rect", xmin = min(hdd_path$date), xmax = forecast_end,
+           ymin = -Inf, ymax = Inf, alpha = 0.1, fill = "steelblue") +
+  geom_hline(yintercept = quarter_tank, linetype = "dashed", colour = "firebrick") +
+  geom_line(linewidth = 1) +
+  geom_point(data = reorder, colour = "firebrick", size = 3) +
+  annotate("text", x = reorder$date, y = quarter_tank,
+           label = paste("Reorder by", format(reorder$date, "%b %d")),
+           vjust = -1, hjust = 1, colour = "firebrick") +
+  scale_y_continuous(limits = c(0, tank_inputs$tank_size_gal)) +
+  scale_x_date(date_labels = "%b %d") +
+  labs(
+    title = "Projected heating oil in tank",
+    subtitle = "Shaded: NWS forecast · after: 1991–2020 normals",
+    x = NULL, y = "Gallons in tank"
+  ) +
+  theme_minimal()
+```
+
+
+
